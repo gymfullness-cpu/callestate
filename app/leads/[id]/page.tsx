@@ -16,7 +16,8 @@ type Lead = {
 const leads: Lead[] = [
   { id: 1, name: "Jan Kowalski", phone: "600123456", status: "Nowy" },
   { id: 2, name: "Anna Nowak", phone: "500987654", status: "Oddzwonić" },
-  { id: 3, name: "Piotr Zieliński", phone: "700111222", status: "Zainteresowany" },
+  { id: 3, name: "Piotr Zieliński", phone: "700111222", status: "Zamknięty"
+ },
 ];
 
 export default async function LeadPage({
