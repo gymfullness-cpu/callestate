@@ -437,13 +437,25 @@ function Kpi({
   );
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function Th({ children }: { children?: React.ReactNode }) {
   return (
-    <th className="px-5 py-3 text-left text-xs font-extrabold uppercase tracking-wide" style={{ color: "rgba(15,23,42,0.70)" }}>
-      {children}
+    <th
+      style={{
+        textAlign: "left",
+        fontSize: 12,
+        letterSpacing: 0.2,
+        fontWeight: 900,
+        color: "var(--text-muted)",
+        padding: "12px 12px",
+        borderBottom: "1px solid var(--border-soft)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children ?? null}
     </th>
   );
 }
+
 
 function Td({
   children,
