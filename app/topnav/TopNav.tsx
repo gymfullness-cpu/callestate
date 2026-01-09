@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { usePathname } from "next/navigation";
 import NavLink from "./NavLink";
-import { AppBrand } from "./AppBrand";
-
-// ✅ U CIEBIE: app/components/themeswitcher (case-sensitive na Vercel)
+import { AppBrand } from "../components/AppBrand";
 import ThemeSwitcher from "../components/themeswitcher";
+
 
 export default function TopNav() {
   const [hidden, setHidden] = useState(false);
@@ -140,7 +139,7 @@ export default function TopNav() {
           {/* LEWA: logo + switcher obok */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
             <AppBrand />
-            <ThemeSwitcher />
+            <themeswitcher />
           </div>
 
           {/* MOBILE */}
