@@ -1,4 +1,25 @@
-import { InteractionType, LeadStatus } from "@prisma/client";
+// Prisma 7 / build na Vercelu potrafi nie mieć eksportów enumów w @prisma/client w tym etapie.
+// Dlatego definiujemy lokalne typy zgodne z schema.prisma i nie importujemy ich z Prisma.
+
+export type LeadStatus =
+  | "NEW"
+  | "CONTACTED"
+  | "QUALIFIED"
+  | "VIEWING"
+  | "OFFER"
+  | "WON"
+  | "LOST"
+  | "ARCHIVED"
+  | (string & {});
+
+export type InteractionType =
+  | "CALL"
+  | "SMS"
+  | "EMAIL"
+  | "MEETING"
+  | "NOTE"
+  | "WHATSAPP"
+  | (string & {});
 
 type Interaction = { type: InteractionType; createdAt: Date };
 
