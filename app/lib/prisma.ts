@@ -6,22 +6,18 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-function makePrisma() {
-  const url = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL ?? "file:./dev.db";
 
-  if (!url) {
-    throw new Error("Brak DATABASE_URL w .env (np. DATABASE_URL=\"file:./dev.db\")");
-  }
+// ✅ Prisma 7.2: adapter przyjmuje { url }, a nie instancję Database
+const adapter = new PrismaBetterSqlite3({
+  url: databaseUrl,
+});
 
-  // Adapter dla SQLite (better-sqlite3)
-  const adapter = new PrismaBetterSqlite3({ url });
-
-  return new PrismaClient({
+export const prisma =
+  globalThis.prisma ??
+  new PrismaClient({
     adapter,
-    log: ["error", "warn"],
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
-}
 
-export const prisma = global.prisma ?? makePrisma();
-
-if (process.env.NODE_ENV !== "production") global.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalThis.prisma = prisma;
