@@ -1,4 +1,4 @@
-import { Inter } from "next/font/google";
+﻿import { Inter } from "next/font/google";
 import "./globals.css";
 import NavLink from "./NavLink";
 import Script from "next/script";
