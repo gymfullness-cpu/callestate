@@ -174,29 +174,29 @@ export default function TopNav() {
           {/* MOBILE */}
           <div className="ce-mobile-menu">
             <details ref={detailsRef}>
-              <summary className="ce-hamburger">ÂÂ° Menu</summary>
+              <summary className="ce-hamburger">�� Menu</summary>
 
               <div className="ce-dropdown" onClick={onDropdownClick}>
                 <div className="ce-grid">
-                  <NavLink href="/dashboard">📊 Ĺ  Dashboard</NavLink>
-                  <NavLink href="/leads">📊 Ĺľ Leady</NavLink>
-                  <NavLink href="/contacts">â€Ä„ Kontakty</NavLink>
-                  <NavLink href="/agents">Â§â€â‚¬Ĺ¤’Ä˝ Agenci</NavLink>
+                  <NavLink href="/dashboard">=� 9� Dashboard</NavLink>
+                  <NavLink href="/leads">=� 9> Leady</NavLink>
+                  <NavLink href="/contacts"> �� Kontakty</NavLink>
+                  <NavLink href="/agents">� ���9��� Agenci</NavLink>
 
-                  <NavLink href="/prospects">Ĺ» Pozyski</NavLink>
-                  <NavLink href="/properties">ĹąÂ  NieruchomoÄąâ€şci</NavLink>
+                  <NavLink href="/prospects">9� Pozyski</NavLink>
+                  <NavLink href="/properties">9� Nieruchomo� _ci</NavLink>
 
-                  <NavLink href="/calendar">📊 … Kalendarz</NavLink>
-                  <NavLink href="/followups">”” Follow-up</NavLink>
+                  <NavLink href="/calendar">=� & Kalendarz</NavLink>
+                  <NavLink href="/followups"> Follow-up</NavLink>
 
-                  <NavLink href="/analyzed">Â¤â— AI: Analiza</NavLink>
-                  <NavLink href="/assistant/live">Â§ AI: Coach</NavLink>
+                  <NavLink href="/analyzed">�� AI: Analiza</NavLink>
+                  <NavLink href="/assistant/live">� AI: Coach</NavLink>
 
-                  <NavLink href="/market">ĹšĹ¤ Market</NavLink>
-                  <NavLink href="/voice-notes">â„˘Ä🏠Â¸Ĺą GÄąâ€šosÄ‚łwki</NavLink>
-                  <NavLink href="/documents/sale">📊 â€ž Dokumenty</NavLink>
-                  <NavLink href="/news">â—ĹľÄ🏠Â¸Ĺą Prasówka</NavLink>
-                  <NavLink href="/newsletter">â€°Ä🏠Â¸Ĺą Newsletter</NavLink>
+                  <NavLink href="/market">9a9� Market</NavLink>
+                  <NavLink href="/voice-notes">���<�9 G� aos�Bwki</NavLink>
+                  <NavLink href="/documents/sale">=�  Dokumenty</NavLink>
+                  <NavLink href="/news">�9>�<�9 Pras�wka</NavLink>
+                  <NavLink href="/newsletter"> ��<�9 Newsletter</NavLink>
                 </div>
               </div>
             </details>
@@ -204,25 +204,25 @@ export default function TopNav() {
 
           {/* DESKTOP */}
           <div className="ce-desktop-links" style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <NavLink href="/dashboard">📊 Ĺ  Dashboard</NavLink>
-            <NavLink href="/leads">📊 Ĺľ Leady</NavLink>
-            <NavLink href="/contacts">â€Ä„ Kontakty</NavLink>
-            <NavLink href="/agents">Â§â€â‚¬Ĺ¤’Ä˝ Agenci</NavLink>
+            <NavLink href="/dashboard">=� 9� Dashboard</NavLink>
+            <NavLink href="/leads">=� 9> Leady</NavLink>
+            <NavLink href="/contacts"> �� Kontakty</NavLink>
+            <NavLink href="/agents">� ���9��� Agenci</NavLink>
 
-            <NavLink href="/prospects">Ĺ» Pozyski</NavLink>
-            <NavLink href="/properties">ĹąÂ  NieruchomoÄąâ€şci</NavLink>
+            <NavLink href="/prospects">9� Pozyski</NavLink>
+            <NavLink href="/properties">9� Nieruchomo� _ci</NavLink>
 
-            <NavLink href="/calendar">📊 … Kalendarz</NavLink>
-            <NavLink href="/followups">”” Follow-up</NavLink>
+            <NavLink href="/calendar">=� & Kalendarz</NavLink>
+            <NavLink href="/followups"> Follow-up</NavLink>
 
-            <NavLink href="/analyzed">Â¤â— AI: Analiza</NavLink>
-            <NavLink href="/assistant/live">Â§ AI: Coach</NavLink>
+            <NavLink href="/analyzed">�� AI: Analiza</NavLink>
+            <NavLink href="/assistant/live">� AI: Coach</NavLink>
 
-            <NavLink href="/market">ĹšĹ¤ Market</NavLink>
-            <NavLink href="/voice-notes">â„˘Ä🏠Â¸Ĺą GÄąâ€šosÄ‚łwki</NavLink>
-            <NavLink href="/documents/sale">📊 â€ž Dokumenty</NavLink>
-            <NavLink href="/news">â—ĹľÄ🏠Â¸Ĺą Prasówka</NavLink>
-            <NavLink href="/newsletter">â€°Ä🏠Â¸Ĺą Newsletter</NavLink>
+            <NavLink href="/market">9a9� Market</NavLink>
+            <NavLink href="/voice-notes">���<�9 G� aos�Bwki</NavLink>
+            <NavLink href="/documents/sale">=�  Dokumenty</NavLink>
+            <NavLink href="/news">�9>�<�9 Pras�wka</NavLink>
+            <NavLink href="/newsletter"> ��<�9 Newsletter</NavLink>
           </div>
         </div>
       </nav>

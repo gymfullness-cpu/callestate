@@ -15,29 +15,29 @@ export default function DashboardPage() {
               color: "rgba(234,255,251,0.92)",
             }}
           >
-            <span style={{ color: "var(--accent)" }}>â—Ĺą</span> Centrum dowodzenia
+            <span style={{ color: "var(--accent)" }}>�9</span> Centrum dowodzenia
           </div>
 
           <h1
             className="mt-3 text-3xl font-extrabold tracking-tight"
             style={{ color: "var(--text-main)" }}
           >
-            📊 Ĺ  Dashboard
+            =� 9� Dashboard
           </h1>
 
           <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-            Szybki dostćâ„˘p do moduÄąâ€šÄ‚łw. Wszystko w jednym miejscu.
+            Szybki dost��p do modu� a�Bw. Wszystko w jednym miejscu.
           </p>
         </div>
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <Tile title="📊 … Kalendarz" desc="Spotkania, przypomnienia, follow-up." href="/calendar" />
-        <Tile title="Â§Ë› Pozyski" desc="Pozyskiwanie ofert i wÄąâ€šaÄąâ€şcicieli." href="/prospects" />
-        <Tile title="ĹąÂ  NieruchomoÄąâ€şci" desc="Baza ofert, zdjćâ„˘cia, parametry." href="/properties" />
-        <Tile title="Â¤â— AI: Analiza" desc="AI: analiza i porzć…dek zdjćâ„˘ćâ€ˇ." href="/analyzed" />
-        <Tile title="Â§Â® AI: Wycena" desc="Szybka wycena nieruchomoÄąâ€şci." href="/valuation" />
-        <Tile title="📊 Ĺľ Leady" desc="Leady, statusy, kontakty." href="/leads" />
+        <Tile title="=� & Kalendarz" desc="Spotkania, przypomnienia, follow-up." href="/calendar" />
+        <Tile title="��: Pozyski" desc="Pozyskiwanie ofert i w� aa� _cicieli." href="/prospects" />
+        <Tile title="9� Nieruchomo� _ci" desc="Baza ofert, zdj��cia, parametry." href="/properties" />
+        <Tile title="�� AI: Analiza" desc="AI: analiza i porz&dek zdj�� �." href="/analyzed" />
+        <Tile title="�� AI: Wycena" desc="Szybka wycena nieruchomo� _ci." href="/valuation" />
+        <Tile title="=� 9> Leady" desc="Leady, statusy, kontakty." href="/leads" />
       </div>
     </main>
   );
@@ -64,7 +64,7 @@ function Tile({ title, desc, href }: { title: string; desc: string; href: string
             color: "rgba(234,255,251,0.95)",
           }}
         >
-          Otwórz â€ ’
+          Otw�rz  �
         </div>
       </div>
 

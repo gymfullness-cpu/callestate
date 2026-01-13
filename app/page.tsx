@@ -11,18 +11,18 @@ type CalendarEvent = {
 };
 
 const MODULES = [
-  { href: "/calendar", icon: "📊 …", title: "Kalendarz", desc: "Plan dnia i spotkania" },
-  { href: "/leads", icon: "📊 Ĺľ", title: "Leady", desc: "Popyt i historia kontaktu" },
-  { href: "/properties", icon: "ĹąÂ ", title: "NieruchomoÄąâ€şci", desc: "Oferty i ceny" },
-  { href: "/prospects", icon: "Ĺ»", title: "Pozyski", desc: "Pipeline wÄąâ€šaÄąâ€şcicieli" },
-  { href: "/dashboard", icon: "📊 Ĺ ", title: "Dashboard", desc: "KPI i skrÄ‚łty" },
-  { href: "/assistant/live", icon: "Â§", title: "AI Coach", desc: "Wsparcie rozmÄ‚łw" },
+  { href: "/calendar", icon: "=� &", title: "Kalendarz", desc: "Plan dnia i spotkania" },
+  { href: "/leads", icon: "=� 9>", title: "Leady", desc: "Popyt i historia kontaktu" },
+  { href: "/properties", icon: "9�", title: "Nieruchomo� _ci", desc: "Oferty i ceny" },
+  { href: "/prospects", icon: "9�", title: "Pozyski", desc: "Pipeline w� aa� _cicieli" },
+  { href: "/dashboard", icon: "=� 9�", title: "Dashboard", desc: "KPI i skr�Bty" },
+  { href: "/assistant/live", icon: "�", title: "AI Coach", desc: "Wsparcie rozm�Bw" },
 ];
 
 export default function HomePage() {
   const [todayEvents, setTodayEvents] = useState<CalendarEvent[]>([]);
 
-  // … localStorage tylko po mount (BRAK bÄąâ€šćâ„˘du SSR)
+  // & localStorage tylko po mount (BRAK b� a��du SSR)
   useEffect(() => {
     try {
       const raw = localStorage.getItem("calendar-events");
@@ -45,17 +45,17 @@ export default function HomePage() {
         <h1 className="ce-title">
           Premium AI CRM
           <br />
-          dla nieruchomoÄąâ€şci
+          dla nieruchomo� _ci
         </h1>
 
         <p className="ce-sub">
           Kalendarz, leady, oferty i AI Coach w jednym
-          ekosystemie zaprojektowanym dla agentÄ‚łw premium.
+          ekosystemie zaprojektowanym dla agent�Bw premium.
         </p>
 
         <div className="ce-actions">
-          <NavLink href="/calendar">📊 … Otwórz kalendarz</NavLink>
-          <NavLink href="/assistant/live">Â§ AI Coach</NavLink>
+          <NavLink href="/calendar">=� & Otw�rz kalendarz</NavLink>
+          <NavLink href="/assistant/live">� AI Coach</NavLink>
         </div>
       </section>
 
@@ -64,7 +64,7 @@ export default function HomePage() {
         <div className="ce-today-title">Dzisiaj</div>
 
         {todayEvents.length === 0 ? (
-          <div className="ce-today-empty">Brak zaplanowanych spotkaÄąâ€ž</div>
+          <div className="ce-today-empty">Brak zaplanowanych spotka�</div>
         ) : (
           <div className="ce-today-list">
             {todayEvents.map((e) => (
@@ -84,7 +84,7 @@ export default function HomePage() {
             <div className="ce-card-icon">{m.icon}</div>
             <div className="ce-card-title">{m.title}</div>
             <div className="ce-card-desc">{m.desc}</div>
-            <div className="ce-card-cta">Otwórz â€ ’</div>
+            <div className="ce-card-cta">Otw�rz  �</div>
           </a>
         ))}
       </section>

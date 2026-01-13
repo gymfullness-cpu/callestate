@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 type Msg = { role: "user" | "assistant"; content: string };
 
 function renderContentWithLinks(text: string) {
-  // Zamień URL-e na klikalne linki (proste i bez bibliotek)
+  // ZamieD URL-e na klikalne linki (proste i bez bibliotek)
   const urlRegex = /(https?:\/\/[^\s)]+)|(\bwww\.[^\s)]+)/g;
 
   const parts: Array<string | { url: string; label: string }> = [];
@@ -53,7 +53,7 @@ export default function CalliWidget() {
     {
       role: "assistant",
       content:
-        "Cześć‡ ‘‹ Jestem Calli Chat.\n\nPomagam w nieruchomościach (KW, notariusz, urzć…d, dokumenty), ale mogć™ też odpowiedzieć‡ na dowolne pytanie i sprawdzić‡ aktualne informacje w sieci.\n\nZadaj pytanie ‘‡",
+        "Cze[! 9 Jestem Calli Chat.\n\nPomagam w nieruchomo[ciach (KW, notariusz, urz&d, dokumenty), ale mog" te| odpowiedzie! na dowolne pytanie i sprawdzi! aktualne informacje w sieci.\n\nZadaj pytanie !",
     },
   ]);
   const [loading, setLoading] = useState(false);
@@ -84,7 +84,7 @@ export default function CalliWidget() {
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
 
-      // … DODATEK: jeśli backend zwraca sources (linki), doklej je do odpowiedzi
+      // & DODATEK: je[li backend zwraca sources (linki), doklej je do odpowiedzi
       let content: string = data.reply ?? "";
 
       if (Array.isArray(data.sources) && data.sources.length) {
@@ -94,13 +94,13 @@ export default function CalliWidget() {
             const title =
               typeof s?.title === "string" && s.title.trim() ? s.title.trim() : "";
             const url = typeof s?.url === "string" ? s.url : "";
-            return `${i + 1}. ${title ? title + " — " : ""}${url}`;
+            return `${i + 1}. ${title ? title + "  " : ""}${url}`;
           })
-          .filter((line: string) => line.trim() && !line.trim().endsWith("—"))
+          .filter((line: string) => line.trim() && !line.trim().endsWith(""))
           .join("\n");
 
         if (srcText.trim()) {
-          content += `\n\nĹąródła:\n${srcText}`;
+          content += `\n\n9r�dBa:\n${srcText}`;
         }
       }
 
@@ -110,7 +110,7 @@ export default function CalliWidget() {
         ...m,
         {
           role: "assistant" as const,
-          content: "š ď¸🏠 Wystć…pił błć…d. Spróbuj ponownie za chwilć™.",
+          content: "a��<� Wyst&piB bB&d. Spr�buj ponownie za chwil".",
         },
       ]);
     } finally {
@@ -150,7 +150,7 @@ export default function CalliWidget() {
           fontWeight: 800,
         }}
       >
-        ď¸🏠 Calli Chat
+        ���<� Calli Chat
       </button>
 
       {open && (
@@ -179,8 +179,8 @@ export default function CalliWidget() {
               fontWeight: 900,
             }}
           >
-            ď¸🏠 Calli Chat
-            <div style={{ fontSize: 12, color: C.muted }}>AI €˘ nieruchomości €˘ web</div>
+            ���<� Calli Chat
+            <div style={{ fontSize: 12, color: C.muted }}>AI �� nieruchomo[ci �� web</div>
           </div>
 
           {/* Messages */}
@@ -215,7 +215,7 @@ export default function CalliWidget() {
               </div>
             ))}
             {loading && (
-              <div style={{ color: C.muted, fontSize: 13 }}>Calli pisze€¦</div>
+              <div style={{ color: C.muted, fontSize: 13 }}>Calli pisze��</div>
             )}
           </div>
 
@@ -233,19 +233,19 @@ export default function CalliWidget() {
               disabled={loading}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                // Nie wysyłaj podczas IME (np. chiński/japoński)
+                // Nie wysyBaj podczas IME (np. chiDski/japoDski)
                 if ((e as any).isComposing) return;
 
                 // Shift+Enter = nowa linia
                 if (e.key === "Enter" && e.shiftKey) return;
 
-                // Enter = wyślij
+                // Enter = wy[lij
                 if (e.key === "Enter") {
                   e.preventDefault();
                   void send();
                 }
               }}
-              placeholder="Zadaj pytanie€¦"
+              placeholder="Zadaj pytanie��"
               style={{
                 flex: 1,
                 borderRadius: 12,
@@ -271,7 +271,7 @@ export default function CalliWidget() {
                 opacity: loading ? 0.7 : 1,
               }}
             >
-              Wyślij
+              Wy[lij
             </button>
           </div>
         </div>

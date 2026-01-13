@@ -87,7 +87,7 @@ export default function LeadsPage() {
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .replace(/(owie|ach|ami|owi|emu|ie|u|a|e|y|ow|ów)$/g, "");
+      .replace(/(owie|ach|ami|owi|emu|ie|u|a|e|y|ow|�w)$/g, "");
 
   /* ===== PRICE ===== */
   const extractPriceRange = (text: string) => {
@@ -95,7 +95,7 @@ export default function LeadsPage() {
     let min: number | null = null;
     let max: number | null = null;
 
-    const range = t.match(/(\d{2,3})[-—](\d{2,3})tys/);
+    const range = t.match(/(\d{2,3})[-](\d{2,3})tys/);
     if (range) {
       min = +range[1] * 1000;
       max = +range[2] * 1000;
@@ -148,7 +148,7 @@ export default function LeadsPage() {
 
   /* ===== SAVE ===== */
   const saveLead = () => {
-    if (!form.name.trim()) return alert("Podaj imię™ i nazwisko");
+    if (!form.name.trim()) return alert("Podaj imi" i nazwisko");
 
     const payload: Lead = {
       id: editingId ?? Date.now(),
@@ -167,7 +167,7 @@ export default function LeadsPage() {
   };
 
   const removeLead = (id: number) => {
-    if (!confirm("Usunć…ć‡ leada?")) return;
+    if (!confirm("Usun&! leada?")) return;
     saveLeads(leads.filter((x) => x.id !== id));
   };
 
@@ -181,7 +181,7 @@ export default function LeadsPage() {
   /* ===== UI ===== */
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
-      {/* … MOBILE/DESKTOP LIST SWITCH */}
+      {/* & MOBILE/DESKTOP LIST SWITCH */}
       <style>{`
         .ce-table-desktop { display: block; }
         .ce-cards-mobile { display: none; }
@@ -205,14 +205,14 @@ export default function LeadsPage() {
               color: "rgba(234,255,251,0.92)",
             }}
           >
-            <span style={{ color: "var(--accent)" }}>—🏠</span> Sprzedaż / Popyt
+            <span style={{ color: "var(--accent)" }}><�</span> Sprzeda| / Popyt
           </div>
 
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-main)" }}>
-            ‘¤ Leady
+            � Leady
           </h1>
           <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-            Zbieraj leady i automatycznie podglć…daj dopasowania do ofert.
+            Zbieraj leady i automatycznie podgl&daj dopasowania do ofert.
           </p>
         </div>
 
@@ -234,7 +234,7 @@ export default function LeadsPage() {
               {editingId ? "Edytuj leada" : "Dodaj leada"}
             </h2>
             <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-              W preferencjach możesz wpisać‡ np. €śMokotów 3 pok do 1 mln winda€ť.
+              W preferencjach mo|esz wpisa! np. �[Mokot�w 3 pok do 1 mln winda�e.
             </p>
           </div>
 
@@ -253,19 +253,19 @@ export default function LeadsPage() {
                   setSuggestions([]);
                 }}
               >
-                Anuluj edycjć™
+                Anuluj edycj"
               </button>
             ) : null}
 
             <button className="btn-primary" onClick={saveLead}>
-              {editingId ? "’ľ Zapisz" : "ž• Dodaj"}
+              {editingId ? "> Zapisz" : "~" Dodaj"}
             </button>
           </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="label">imię™ i nazwisko</label>
+            <label className="label">imi" i nazwisko</label>
             <input
               className="input"
               placeholder="Jan Kowalski"
@@ -288,7 +288,7 @@ export default function LeadsPage() {
             <label className="label">Preferencje</label>
             <textarea
               className="input h-28 resize-y"
-              placeholder="np. Mokotów 3 pokoje do 1 mln winda"
+              placeholder="np. Mokot�w 3 pokoje do 1 mln winda"
               value={form.preferences ?? ""}
               onChange={(e) => onPrefChange(e.target.value)}
               onBlur={() => setTimeout(() => setSuggestions([]), 150)}
@@ -319,10 +319,10 @@ export default function LeadsPage() {
                     }}
                   >
                     <div className="font-extrabold" style={{ color: "rgba(234,255,251,0.95)" }}>
-                      “Ť {s.display_name}
+                      d {s.display_name}
                     </div>
                     <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                      Kliknij, aby wstawić‡
+                      Kliknij, aby wstawi!
                     </div>
                   </button>
                 ))}
@@ -363,10 +363,10 @@ export default function LeadsPage() {
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
             <h2 className="text-xl font-extrabold" style={{ color: "var(--text-main)" }}>
-              Lista leadów
+              Lista lead�w
             </h2>
             <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-              Ĺć…cznie: {leads.length}
+              9�&cznie: {leads.length}
             </p>
           </div>
         </div>
@@ -374,12 +374,12 @@ export default function LeadsPage() {
         {leads.length === 0 ? (
           <div className="mt-4 rounded-2xl p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border-soft)" }}>
             <div className="text-sm" style={{ color: "var(--text-muted)" }}>
-              Brak leadów. Dodaj pierwszego powyżej ‘†
+              Brak lead�w. Dodaj pierwszego powy|ej  
             </div>
           </div>
         ) : (
           <>
-            {/* … MOBILE: cards (fit phone screen) */}
+            {/* & MOBILE: cards (fit phone screen) */}
             <div className="ce-cards-mobile mt-4" style={{ display: "grid", gap: 12 }}>
               {leads.map((l) => {
                 const matches = fallbackMatch(l);
@@ -398,7 +398,7 @@ export default function LeadsPage() {
                           {l.name}
                         </div>
                         <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                          {l.phone || "—"}
+                          {l.phone || ""}
                         </div>
                       </div>
 
@@ -420,7 +420,7 @@ export default function LeadsPage() {
                         Preferencje
                       </div>
                       <div className="mt-1 text-sm" style={{ color: "rgba(234,255,251,0.92)" }}>
-                        {l.preferences || "—"}
+                        {l.preferences || ""}
                       </div>
                     </div>
 
@@ -446,7 +446,7 @@ export default function LeadsPage() {
                             >
                               <div className="flex items-center justify-between gap-3">
                                 <div className="text-sm font-extrabold" style={{ color: "rgba(234,255,251,0.95)" }}>
-                                  🏠  {p.district || p.city || "—"}
+                                  <� {p.district || p.city || ""}
                                 </div>
                                 <span
                                   className="rounded-full px-2 py-1 text-xs font-black"
@@ -460,16 +460,16 @@ export default function LeadsPage() {
                                 </span>
                               </div>
                               <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                                {p.price ? `${p.price.toLocaleString("pl-PL")} zł` : "—"}
-                                {typeof p.rooms === "number" ? ` €˘ ${p.rooms} pok.` : ""}
-                                {p.elevator ? " €˘ winda" : ""}
+                                {p.price ? `${p.price.toLocaleString("pl-PL")} zB` : ""}
+                                {typeof p.rooms === "number" ? ` �� ${p.rooms} pok.` : ""}
+                                {p.elevator ? " �� winda" : ""}
                               </div>
                             </div>
                           ))}
 
                           {matches.length > 3 ? (
                             <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-                              +{matches.length - 3} wić™cej dopasowań€¦
+                              +{matches.length - 3} wi"cej dopasowaD��
                             </div>
                           ) : null}
                         </div>
@@ -495,7 +495,7 @@ export default function LeadsPage() {
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                       >
-                        🏠ď¸🏠 Edytuj
+                        <��<� Edytuj
                       </button>
 
                       <button
@@ -507,7 +507,7 @@ export default function LeadsPage() {
                         }}
                         onClick={() => removeLead(l.id)}
                       >
-                        —‘
+                        
                       </button>
                     </div>
                   </div>
@@ -515,7 +515,7 @@ export default function LeadsPage() {
               })}
             </div>
 
-            {/* … DESKTOP: original table */}
+            {/* & DESKTOP: original table */}
             <div className="ce-table-desktop mt-4 surface-light overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
@@ -538,13 +538,13 @@ export default function LeadsPage() {
                             {l.name}
                           </div>
                           <div className="mt-1 text-xs" style={{ color: "rgba(15,23,42,0.65)" }}>
-                            {l.phone || "—"}
+                            {l.phone || ""}
                           </div>
                         </Td>
 
                         <Td>
                           <div className="text-sm" style={{ color: "rgba(15,23,42,0.80)" }}>
-                            {l.preferences || "—"}
+                            {l.preferences || ""}
                           </div>
                         </Td>
 
@@ -566,7 +566,7 @@ export default function LeadsPage() {
                                 >
                                   <div className="flex items-center justify-between gap-3">
                                     <div className="text-sm font-extrabold" style={{ color: "#0f172a" }}>
-                                      🏠  {p.district || p.city || "—"}
+                                      <� {p.district || p.city || ""}
                                     </div>
 
                                     <span
@@ -582,16 +582,16 @@ export default function LeadsPage() {
                                   </div>
 
                                   <div className="mt-1 text-xs" style={{ color: "rgba(15,23,42,0.70)" }}>
-                                    {p.price ? `${p.price.toLocaleString("pl-PL")} zł` : "—"}
-                                    {typeof p.rooms === "number" ? ` €˘ ${p.rooms} pok.` : ""}
-                                    {p.elevator ? " €˘ winda" : ""}
+                                    {p.price ? `${p.price.toLocaleString("pl-PL")} zB` : ""}
+                                    {typeof p.rooms === "number" ? ` �� ${p.rooms} pok.` : ""}
+                                    {p.elevator ? " �� winda" : ""}
                                   </div>
                                 </div>
                               ))}
 
                               {matches.length > 5 ? (
                                 <div className="text-xs" style={{ color: "rgba(15,23,42,0.60)" }}>
-                                  +{matches.length - 5} wić™cej dopasowań€¦
+                                  +{matches.length - 5} wi"cej dopasowaD��
                                 </div>
                               ) : null}
                             </div>
@@ -617,7 +617,7 @@ export default function LeadsPage() {
                                 window.scrollTo({ top: 0, behavior: "smooth" });
                               }}
                             >
-                              🏠ď¸🏠 Edytuj
+                              <��<� Edytuj
                             </button>
 
                             <button
@@ -629,7 +629,7 @@ export default function LeadsPage() {
                               }}
                               onClick={() => removeLead(l.id)}
                             >
-                              —‘ Usuń
+                               UsuD
                             </button>
                           </div>
                         </Td>

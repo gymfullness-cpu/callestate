@@ -29,20 +29,20 @@ type Top3 = {
 
 const CITY_PRESETS = [
   "Warszawa",
-  "KrakÄ‚łw",
-  "WrocÄąâ€šaw",
-  "PoznaÄąâ€ž",
-  "GdaÄąâ€žsk",
+  "Krak�Bw",
+  "Wroc� aaw",
+  "Pozna�",
+  "Gda�sk",
   "Gdynia",
   "Sopot",
-  "ÄąÂÄ‚łdÄąĹź",
+  "���Bd�9z",
   "Katowice",
   "Szczecin",
   "Lublin",
-  "BiaÄąâ€šystok",
+  "Bia� aystok",
 ] as const;
 
-/** … Cache TTL (ile minut trzymamy newsy, żeby start byÄąâ€š natychmiastowy) */
+/** & Cache TTL (ile minut trzymamy newsy, |eby start by� a natychmiastowy) */
 const NEWS_CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
 const cacheKey = (city: string) => `news_feed_cache_v1:${(city || "").trim().toLowerCase()}`;
 
@@ -100,12 +100,12 @@ export default function NewsPage() {
   const [appliedCity, setAppliedCity] = useState("");
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
 
-  // requestId/abort: ignorujemy spÄ‚łÄąĹźnione odpowiedzi i ucinamy stare requesty
+  // requestId/abort: ignorujemy sp�B�9znione odpowiedzi i ucinamy stare requesty
   const reqIdRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const didInitRef = useRef(false);
 
-  // trzymamy ostatnie dane żeby nie migotaÄąâ€šo
+  // trzymamy ostatnie dane |eby nie migota� ao
   const itemsRef = useRef<NewsItem[]>([]);
   const top3Ref = useRef<Top3[]>([]);
   const ratesRef = useRef<Rates | null>(null);
@@ -120,18 +120,18 @@ export default function NewsPage() {
     ratesRef.current = rates;
   }, [rates]);
 
-  /** … 1) natychmiast ustaw stan z cache (jeÄąâ€şli jest) */
+  /** & 1) natychmiast ustaw stan z cache (je� _li jest) */
   const hydrateFromCache = useCallback((cityParam: string) => {
     const cached = safeReadCache(cityParam);
     if (!cached) return false;
 
-    // nawet jeÄąâ€şli stary â‚¬” nadal moÄąÄ˝e przyspieszyćâ€ˇ â‚¬śpierwszć… ramkćâ„˘â‚¬ĹĄ
+    // nawet je� _li stary �� nadal mo���e przyspieszy � ��[pierwsz& ramk��
     setItems((prev) => (prev.length ? prev : cached.items || []));
     setTop3((prev) => (prev.length ? prev : cached.top3 || []));
     setRates((prev) => (prev ? prev : cached.rates ?? null));
     setGeneratedAt((prev) => prev ?? cached.generatedAt ?? null);
 
-    // jeÄąâ€şli cache Äąâ€şwieÄąÄ˝y, od razu zdejmij loading
+    // je� _li cache � _wie���y, od razu zdejmij loading
     if (cached.items?.length || cached.top3?.length || cached.rates) {
       setLoading(false);
     }
@@ -139,7 +139,7 @@ export default function NewsPage() {
     return true;
   }, []);
 
-  /** … 2) fetch w tle / normalny */
+  /** & 2) fetch w tle / normalny */
   const fetchFeed = useCallback(
     async (cityParam: string, opts?: { force?: boolean }) => {
       const myReqId = ++reqIdRef.current;
@@ -155,7 +155,7 @@ export default function NewsPage() {
         (top3Ref.current?.length || 0) > 0 ||
         !!ratesRef.current;
 
-      // jeÄąâ€şli juÄąÄ˝ coÄąâ€ş mamy â‚¬” nie chowaj UI
+      // je� _li ju��� co� _ mamy �� nie chowaj UI
       if (!hasData) setLoading(true);
       else setRefreshing(true);
 
@@ -165,9 +165,9 @@ export default function NewsPage() {
         const c = cityParam.trim();
         const cached = safeReadCache(c);
 
-        // … jeÄąâ€şli cache Äąâ€şwieÄąÄ˝y i nie wymuszamy, to nie mćâ„˘cz API (szybciej + mniej requestÄ‚łw)
+        // & je� _li cache � _wie���y i nie wymuszamy, to nie m��cz API (szybciej + mniej request�Bw)
         if (!opts?.force && cached && isFresh(cached.cachedAt)) {
-          // wcić…ÄąÄ˝ zdejmij loading/refreshing
+          // wci&��� zdejmij loading/refreshing
           setLoading(false);
           setRefreshing(false);
           return;
@@ -175,8 +175,8 @@ export default function NewsPage() {
 
         const qs = c ? `?city=${encodeURIComponent(c)}` : "";
         const res = await fetch(`/api/news-feed${qs}`, {
-          // zostawiamy no-store, bo to API pewnie generuje na Äąâ€şwieÄąÄ˝o,
-          // ale UI juÄąÄ˝ jest szybkie dzićâ„˘ki localStorage cache.
+          // zostawiamy no-store, bo to API pewnie generuje na � _wie���o,
+          // ale UI ju��� jest szybkie dzi��ki localStorage cache.
           cache: "no-store",
           signal: abortRef.current.signal,
         });
@@ -184,12 +184,12 @@ export default function NewsPage() {
         const data = await res.json();
 
         if (myReqId !== reqIdRef.current) return;
-        if (!res.ok || !data?.ok) throw new Error(data?.error || "BÄąâ€šć…d pobierania newsÄ‚łw");
+        if (!res.ok || !data?.ok) throw new Error(data?.error || "B� a&d pobierania news�Bw");
 
         const nextItems = Array.isArray(data.items) ? (data.items as NewsItem[]) : null;
         const nextTop3 = Array.isArray(data.top3) ? (data.top3 as Top3[]) : null;
 
-        // nie nadpisuj pustkć…
+        // nie nadpisuj pustk&
         const finalItems = nextItems && nextItems.length > 0 ? nextItems : itemsRef.current;
         const finalTop3 = nextTop3 && nextTop3.length > 0 ? nextTop3 : top3Ref.current;
         const finalRates = data.rates ? (data.rates as Rates) : ratesRef.current;
@@ -200,7 +200,7 @@ export default function NewsPage() {
         setRates(finalRates);
         setGeneratedAt(finalGeneratedAt);
 
-        // … zapisz do cache (żeby nastćâ„˘pny start byÄąâ€š natychmiastowy)
+        // & zapisz do cache (|eby nast��pny start by� a natychmiastowy)
         safeWriteCache(c, {
           items: finalItems || [],
           top3: finalTop3 || [],
@@ -211,7 +211,7 @@ export default function NewsPage() {
         if (e?.name === "AbortError") return;
         if (myReqId !== reqIdRef.current) return;
 
-        setErr(e?.message || "Nieznany bÄąâ€šć…d");
+        setErr(e?.message || "Nieznany b� a&d");
       } finally {
         if (myReqId === reqIdRef.current) {
           setLoading(false);
@@ -223,15 +223,15 @@ export default function NewsPage() {
   );
 
   useEffect(() => {
-    // dev StrictMode odpala 2x â‚¬” blokujemy
+    // dev StrictMode odpala 2x �� blokujemy
     if (didInitRef.current) return;
     didInitRef.current = true;
 
-    // … NATYCHMIAST: pokaż cache (jeÄąâ€şli jest)
+    // & NATYCHMIAST: poka| cache (je� _li jest)
     hydrateFromCache("");
 
-    // … W TLE: docić…gnij Äąâ€şwieÄąÄ˝e
-    // requestIdleCallback jeÄąâ€şli jest, żeby nie blokowaćâ€ˇ UI na mobile
+    // & W TLE: doci&gnij � _wie���e
+    // requestIdleCallback je� _li jest, |eby nie blokowa � UI na mobile
     const run = () => fetchFeed("", { force: false });
 
     if (typeof (window as any).requestIdleCallback === "function") {
@@ -253,11 +253,11 @@ export default function NewsPage() {
   }, [items, tab]);
 
   const updatedLabel = useMemo(() => {
-    if (!generatedAt) return "â‚¬”";
+    if (!generatedAt) return "��";
     try {
       return new Date(generatedAt).toLocaleString("pl-PL");
     } catch {
-      return "â‚¬”";
+      return "��";
     }
   }, [generatedAt]);
 
@@ -267,7 +267,7 @@ export default function NewsPage() {
     const r = rates?.reference?.value;
     const d = rates?.reference?.date;
     if (r) return `Stopa referencyjna NBP: ${r}% ${d ? `(od ${d})` : ""}.`;
-    return "Nie udaÄąâ€šo sićâ„˘ pobraćâ€ˇ stawek NBP (tymczasowo).";
+    return "Nie uda� ao si�� pobra � stawek NBP (tymczasowo).";
   }, [rates]);
 
   const S = {
@@ -399,17 +399,17 @@ export default function NewsPage() {
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between ce-no-x">
         <div style={{ minWidth: 0 }}>
           <h1 style={S.pageTitle} className="ce-break">
-            â—ĹľÄ🏠Â¸Ĺą Prasówka: nieruchomoÄąâ€şci (PL)
+            �9>�<�9 Pras�wka: nieruchomo� _ci (PL)
           </h1>
           <p className="mt-2 text-sm ce-break" style={S.muted}>
-            NagÄąâ€šÄ‚łwki z internetu + szybkie â‚¬śco to znaczy dla agentaâ‚¬ĹĄ. Linki + opis + przewijany feed.
+            Nag� a�Bwki z internetu + szybkie ��[co to znaczy dla agenta. Linki + opis + przewijany feed.
           </p>
           <div className="mt-2 text-xs ce-break" style={S.muted}>
             Ostatnia aktualizacja: <b style={{ color: "rgba(234,255,251,0.95)" }}>{updatedLabel}</b>
             {appliedCity ? (
               <>
                 {" "}
-                â‚¬Ë Miasto: <b style={{ color: "rgba(234,255,251,0.95)" }}>{appliedCity}</b>
+                ��˘ Miasto: <b style={{ color: "rgba(234,255,251,0.95)" }}>{appliedCity}</b>
               </>
             ) : null}
           </div>
@@ -420,9 +420,9 @@ export default function NewsPage() {
             style={S.btn}
             onClick={() => fetchFeed(appliedCity, { force: true })}
             disabled={loading || refreshing}
-            title="Wymusza pobranie z API (nie uÄąÄ˝ywa Äąâ€şwieÄąÄ˝ego cache)."
+            title="Wymusza pobranie z API (nie u���ywa � _wie���ego cache)."
           >
-            ”â€ž OdÄąâ€şwieÄąÄ˝ teraz
+             Od� _wie��� teraz
           </button>
 
           <div
@@ -433,7 +433,7 @@ export default function NewsPage() {
               color: "rgba(234,255,251,0.92)",
             }}
           >
-            {loading ? "ł ÄąÂadujćâ„˘â‚¬Â¦" : refreshing ? "”â€ž OdÄąâ€şwieÄąÄ˝amâ‚¬Â¦" : `NewsÄ‚łw: ${filtered.length}`}
+            {loading ? "B ��aduj�����" : refreshing ? " Od� _wie���am���" : `News�Bw: ${filtered.length}`}
           </div>
         </div>
       </div>
@@ -442,9 +442,9 @@ export default function NewsPage() {
       <div className="mt-6" style={S.card}>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between" style={{ minWidth: 0 }}>
           <div style={{ minWidth: 0 }}>
-            <div className="text-sm font-extrabold">ĹˇË‡ Top 3 dziÄąâ€ş â‚¬📊  w 20 sekund</div>
+            <div className="text-sm font-extrabold">9��! Top 3 dzi� _ ��=�  w 20 sekund</div>
             <div className="mt-1 text-sm ce-break" style={S.muted}>
-              NajwaÄąÄ˝niejsze rzeczy do rozmÄ‚łw z klientami (AI wybiera i tÄąâ€šumaczy sens).
+              Najwa���niejsze rzeczy do rozm�Bw z klientami (AI wybiera i t� aumaczy sens).
             </div>
           </div>
 
@@ -453,7 +453,7 @@ export default function NewsPage() {
               <input
                 list="cityPresets"
                 style={S.input}
-                placeholder="📊 Ĺ¤ Twoje miasto (np. Warszawa)"
+                placeholder="=� 9� Twoje miasto (np. Warszawa)"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               />
@@ -470,15 +470,15 @@ export default function NewsPage() {
                 const c = city.trim();
                 setAppliedCity(c);
 
-                // … natychmiast pokaż cache dla tego miasta (jeÄąâ€şli jest)
+                // & natychmiast poka| cache dla tego miasta (je� _li jest)
                 hydrateFromCache(c);
 
-                // … w tle pobierz Äąâ€şwieÄąÄ˝e (nie force â‚¬📊  TTL zadziaÄąâ€ša)
+                // & w tle pobierz � _wie���e (nie force ��=�  TTL zadzia� aa)
                 fetchFeed(c, { force: false });
               }}
               disabled={loading || refreshing}
             >
-              … Zastosuj
+              & Zastosuj
             </button>
 
             {appliedCity ? (
@@ -493,7 +493,7 @@ export default function NewsPage() {
                 }}
                 disabled={loading || refreshing}
               >
-                â— WyczyÄąâ€şćâ€ˇ
+                � Wyczy� _ �
               </button>
             ) : null}
           </div>
@@ -501,11 +501,11 @@ export default function NewsPage() {
 
         {loading && top3.length === 0 ? (
           <div className="mt-4 text-sm" style={S.muted}>
-            ł UkÄąâ€šadam Top 3â‚¬Â¦
+            B Uk� aadam Top 3���
           </div>
         ) : err && top3.length === 0 ? (
           <div className="mt-4 text-sm" style={{ color: "rgba(255,220,220,0.95)" }}>
-            ĹˇÂ  {err}
+            9Ǡ {err}
           </div>
         ) : top3.length === 0 ? (
           <div className="mt-4 text-sm" style={S.muted}>
@@ -515,7 +515,7 @@ export default function NewsPage() {
           <>
             {refreshing ? (
               <div className="mt-4 text-xs font-extrabold" style={{ color: "rgba(234,255,251,0.92)" }}>
-                ”â€ž OdÄąâ€şwieÄąÄ˝am w tleâ‚¬Â¦
+                 Od� _wie���am w tle���
               </div>
             ) : null}
 
@@ -535,7 +535,7 @@ export default function NewsPage() {
                   }}
                 >
                   <div style={S.badge}>
-                    #{idx + 1} â‚¬Ë {t.category}
+                    #{idx + 1} ��˘ {t.category}
                   </div>
 
                   <div
@@ -553,7 +553,7 @@ export default function NewsPage() {
                   </div>
 
                   <div className="mt-3 text-xs font-extrabold" style={{ color: "rgba(234,255,251,0.92)" }}>
-                    Otwórz ÄąĹźrÄ‚łdÄąâ€šo â€ ’
+                    Otw�rz �9zr�Bd� ao  �
                   </div>
                 </a>
               ))}
@@ -565,9 +565,9 @@ export default function NewsPage() {
       {/* KREDYTY + FEED */}
       <div className="mt-4 ce-main-grid">
         <div style={S.card}>
-          <div className="text-sm font-extrabold">ĹąÂ¦ Kredyty / stopy</div>
+          <div className="text-sm font-extrabold">9� Kredyty / stopy</div>
           <p className="mt-2 text-sm ce-break" style={S.muted}>
-            Kontekst â‚¬śco sićâ„˘ dzieje z finansowaniemâ‚¬ĹĄ (kluczowe w rozmowach z klientami).
+            Kontekst ��[co si�� dzieje z finansowaniem (kluczowe w rozmowach z klientami).
           </p>
 
           <div
@@ -590,28 +590,28 @@ export default function NewsPage() {
               </div>
             ) : (
               <div className="mt-3 text-sm ce-break" style={{ color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>
-                Brak stawek do wyÄąâ€şwietlenia. Kliknij <b>OdÄąâ€şwieÄąÄ˝ teraz</b> albo sprÄ‚łbuj ponownie za chwilćâ„˘.
+                Brak stawek do wy� _wietlenia. Kliknij <b>Od� _wie��� teraz</b> albo spr�Bbuj ponownie za chwil��.
               </div>
             )}
           </div>
         </div>
 
         <div style={S.card}>
-          <div className="text-sm font-extrabold">Â§Â  Feed newsÄ‚łw (przewijany)</div>
+          <div className="text-sm font-extrabold">�� Feed news�Bw (przewijany)</div>
           <p className="mt-2 text-sm ce-break" style={S.muted}>
-            Klikasz nagÄąâ€šÄ‚łwek â€ ’ otwiera ÄąĹźrÄ‚łdÄąâ€šo. W Äąâ€şrodku masz sens i â‚¬śdlaczego waÄąÄ˝neâ‚¬ĹĄ.
+            Klikasz nag� a�Bwek  � otwiera �9zr�Bd� ao. W � _rodku masz sens i ��[dlaczego wa���ne.
           </p>
 
           <div className="mt-4 ce-tabs">
             {(["Wszystko", "Kredyty", "Rynek", "Prawo"] as const).map((t) => (
               <div key={t} style={S.pill(tab === t)} onClick={() => setTab(t)}>
                 {t === "Wszystko"
-                  ? "Â§Äľ Wszystko"
+                  ? "��> Wszystko"
                   : t === "Kredyty"
-                  ? "’ł Kredyty"
+                  ? "B Kredyty"
                   : t === "Rynek"
-                  ? "ĹąÂÄ🏠Â¸Ĺą Rynek"
-                  : "Ĺˇâ—Ä🏠Â¸Ĺą Prawo"}
+                  ? "9��<�9 Rynek"
+                  : "9���<�9 Prawo"}
               </div>
             ))}
           </div>
@@ -620,15 +620,15 @@ export default function NewsPage() {
             <div style={S.feedInner}>
               {loading && filtered.length === 0 ? (
                 <div className="p-5 text-sm" style={S.muted}>
-                  ł Pobieram nagÄąâ€šÄ‚łwkiâ‚¬Â¦
+                  B Pobieram nag� a�Bwki���
                 </div>
               ) : err && filtered.length === 0 ? (
                 <div className="p-5 text-sm" style={{ color: "rgba(255,220,220,0.95)" }}>
-                  ĹˇÂ  {err}
+                  9Ǡ {err}
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="p-5 text-sm" style={S.muted}>
-                  Brak newsÄ‚łw w tej kategorii.
+                  Brak news�Bw w tej kategorii.
                 </div>
               ) : (
                 <>
@@ -641,7 +641,7 @@ export default function NewsPage() {
                         background: "rgba(45,212,191,0.06)",
                       }}
                     >
-                      ”â€ž OdÄąâ€şwieÄąÄ˝am w tleâ‚¬Â¦ (lista nie znika)
+                       Od� _wie���am w tle��� (lista nie znika)
                     </div>
                   ) : null}
 
@@ -672,7 +672,7 @@ function RateRow({ label, v, d }: { label: string; v?: string; d?: string }) {
         {label}
       </div>
       <div className="text-sm font-black ce-break" style={{ color: "var(--text-main)", textAlign: "right" }}>
-        {v ? `${v}%` : "â‚¬”"}
+        {v ? `${v}%` : "��"}
         <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.7 }}>{d || ""}</span>
       </div>
     </div>
@@ -680,7 +680,7 @@ function RateRow({ label, v, d }: { label: string; v?: string; d?: string }) {
 }
 
 function NewsRow({ n, showDivider }: { n: NewsItem; showDivider: boolean }) {
-  const time = n.publishedAt ? new Date(n.publishedAt).toLocaleString("pl-PL") : "â‚¬”";
+  const time = n.publishedAt ? new Date(n.publishedAt).toLocaleString("pl-PL") : "��";
 
   return (
     <a
@@ -708,7 +708,7 @@ function NewsRow({ n, showDivider }: { n: NewsItem; showDivider: boolean }) {
           </span>
 
           <span className="text-xs ce-break" style={{ color: "var(--text-muted)" }}>
-            {n.source ? `${n.source} â‚¬Ë ` : ""}
+            {n.source ? `${n.source} ��˘ ` : ""}
             {time}
           </span>
         </div>
@@ -729,7 +729,7 @@ function NewsRow({ n, showDivider }: { n: NewsItem; showDivider: boolean }) {
             color: "rgba(234,255,251,0.92)",
           }}
         >
-          ’Ë‡ Dlaczego to waÄąÄ˝ne: <span style={{ color: "rgba(255,255,255,0.86)" }}>{n.whyItMatters}</span>
+          �! Dlaczego to wa���ne: <span style={{ color: "rgba(255,255,255,0.86)" }}>{n.whyItMatters}</span>
         </div>
       </div>
     </a>

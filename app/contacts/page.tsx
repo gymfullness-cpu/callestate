@@ -42,8 +42,8 @@ function badge(text: string) {
 }
 
 function typeLabel(t: Contact["type"]) {
-  if (t === "SELLER") return "Sprzedajć…cy";
-  if (t === "BUYER") return "Kupujć…cy";
+  if (t === "SELLER") return "Sprzedaj&cy";
+  if (t === "BUYER") return "Kupuj&cy";
   return "Inne";
 }
 
@@ -117,7 +117,7 @@ export default function ContactsPage() {
 
       if (!id) {
         console.log("DEBUG org parsed:", org);
-        alert("Nie mogćâ„˘ znaleÄąĹźćâ€ˇ orgId. SprawdÄąĹ🏠 Console (F12).");
+        alert("Nie mog�� znale�9z � orgId. Sprawd�9<� Console (F12).");
         setLoading(false);
         return;
       }
@@ -140,7 +140,7 @@ export default function ContactsPage() {
       setLoading(false);
     } catch (e) {
       console.error("DEBUG loadAll error:", e);
-      alert("BÄąâ€šć…d Äąâ€šadowania. Otwórz F12 -> Console i wklej DEBUG.");
+      alert("B� a&d � aadowania. Otw�rz F12 -> Console i wklej DEBUG.");
       setLoading(false);
     }
   }
@@ -154,7 +154,7 @@ export default function ContactsPage() {
     e.preventDefault();
 
     if (!firstName.trim() || !lastName.trim()) {
-      alert("imięâ„˘ i nazwisko sć… wymagane");
+      alert("imi�� i nazwisko s& wymagane");
       return;
     }
 
@@ -175,7 +175,7 @@ export default function ContactsPage() {
 
       if (!res.ok) {
         const text = await res.text();
-        alert("BÄąâ€šć…d dodawania: " + text);
+        alert("B� a&d dodawania: " + text);
         return;
       }
 
@@ -188,17 +188,17 @@ export default function ContactsPage() {
 
       await loadAll();
     } catch (error) {
-      console.error("BÄąâ€šć…d podczas dodawania kontaktu:", error);
-      alert("BÄąâ€šć…d dodawania kontaktu. SprawdÄąĹ🏠 konsolćâ„˘.");
+      console.error("B� a&d podczas dodawania kontaktu:", error);
+      alert("B� a&d dodawania kontaktu. Sprawd�9<� konsol��.");
     }
   }
 
   async function removeContact(id: string) {
-    if (!confirm("Usunć…ćâ€ˇ kontakt?")) return;
+    if (!confirm("Usun& � kontakt?")) return;
 
     const res = await fetch(`/api/contacts/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      alert("Nie udaÄąâ€šo sićâ„˘ usunć…ćâ€ˇ");
+      alert("Nie uda� ao si�� usun& �");
       return;
     }
 
@@ -227,7 +227,7 @@ export default function ContactsPage() {
     if (!editingId) return;
 
     if (!editFirstName.trim() || !editLastName.trim()) {
-      alert("imięâ„˘ i nazwisko sć… wymagane");
+      alert("imi�� i nazwisko s& wymagane");
       return;
     }
 
@@ -247,7 +247,7 @@ export default function ContactsPage() {
 
     if (!res.ok) {
       const text = await res.text();
-      alert("BÄąâ€šć…d zapisu: " + text);
+      alert("B� a&d zapisu: " + text);
       return;
     }
 
@@ -268,12 +268,12 @@ export default function ContactsPage() {
     });
 
     if (res.status === 409) {
-      alert("Taki tag juÄąÄ˝ istnieje");
+      alert("Taki tag ju��� istnieje");
       return;
     }
     if (!res.ok) {
       const text = await res.text();
-      alert("BÄąâ€šć…d dodania tagu: " + text);
+      alert("B� a&d dodania tagu: " + text);
       return;
     }
 
@@ -299,7 +299,7 @@ export default function ContactsPage() {
         padding: 24,
       }}
     >
-      {/* … mobile responsive helpers (bez zmiany logiki) */}
+      {/* & mobile responsive helpers (bez zmiany logiki) */}
       <style>{`
         @media (max-width: 720px) {
           .ce-page { padding: 14px !important; }
@@ -332,8 +332,8 @@ export default function ContactsPage() {
 
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start", flexWrap: "wrap" }}>
             {badge(`Wszyscy: ${contacts.length}`)}
-            {badge(`Sprzedajć…cy: ${countSellers}`)}
-            {badge(`Kupujć…cy: ${countBuyers}`)}
+            {badge(`Sprzedaj&cy: ${countSellers}`)}
+            {badge(`Kupuj&cy: ${countBuyers}`)}
           </div>
         </div>
 
@@ -350,7 +350,7 @@ export default function ContactsPage() {
           <div className="ce-toolbar-row" style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <input
               className="ce-input"
-              placeholder="Szukaj: imięâ„˘, nazwisko, tel, email, notatki..."
+              placeholder="Szukaj: imi��, nazwisko, tel, email, notatki..."
               value={q}
               onChange={(e) => setQ(e.target.value)}
               style={{
@@ -393,11 +393,11 @@ export default function ContactsPage() {
                 fontWeight: 700,
               }}
             >
-              WyczyÄąâ€şćâ€ˇ
+              Wyczy� _ �
             </button>
 
             <div style={{ marginLeft: "auto", opacity: 0.9, fontSize: 12, color: "var(--text-muted)" }}>
-              {loading ? "ÄąÂadowanie..." : "Gotowe"}
+              {loading ? "��adowanie..." : "Gotowe"}
             </div>
           </div>
         </div>
@@ -425,7 +425,7 @@ export default function ContactsPage() {
               >
                 <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-main)" }}>Tagi</div>
                 <div style={{ opacity: 0.9, marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
-                  Dodaj tagi i przypisuj je do kontaktÄ‚łw (VIP, Kredyt, Pilne).
+                  Dodaj tagi i przypisuj je do kontakt�Bw (VIP, Kredyt, Pilne).
                 </div>
 
                 <form onSubmit={addTag} style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
@@ -463,7 +463,7 @@ export default function ContactsPage() {
 
                 <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {tags.length === 0 ? (
-                    <span style={{ opacity: 0.9, color: "var(--text-muted)" }}>Brak tagÄ‚łw</span>
+                    <span style={{ opacity: 0.9, color: "var(--text-muted)" }}>Brak tag�Bw</span>
                   ) : (
                     tags.map((t) => <span key={t.id}>{badge(t.name)}</span>)
                   )}
@@ -481,7 +481,7 @@ export default function ContactsPage() {
               >
                 <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-main)" }}>Dodaj kontakt</div>
                 <div style={{ opacity: 0.9, marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
-                  Minimalne dane: imięâ„˘ i nazwisko. Reszta opcjonalna.
+                  Minimalne dane: imi�� i nazwisko. Reszta opcjonalna.
                 </div>
 
                 <form onSubmit={addContact} style={{ display: "grid", gap: 10, marginTop: 12 }}>
@@ -500,8 +500,8 @@ export default function ContactsPage() {
                           outline: "none",
                         }}
                       >
-                        <option value="SELLER">Sprzedajć…cy</option>
-                        <option value="BUYER">Kupujć…cy</option>
+                        <option value="SELLER">Sprzedaj&cy</option>
+                        <option value="BUYER">Kupuj&cy</option>
                         <option value="OTHER">Inne</option>
                       </select>
                     </label>
@@ -510,7 +510,7 @@ export default function ContactsPage() {
                   <div className="ce-two-cols" style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr 1fr" }}>
                     <input
                       className="ce-input"
-                      placeholder="imięâ„˘"
+                      placeholder="imi��"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       style={{
@@ -615,15 +615,15 @@ export default function ContactsPage() {
             >
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-main)" }}>Lista kontaktÄ‚łw</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-main)" }}>Lista kontakt�Bw</div>
                   <div style={{ opacity: 0.9, marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
-                    Kliknij â‚¬śEdytujâ‚¬ĹĄ, żeby zmienićâ€ˇ dane i tagi.
+                    Kliknij ��[Edytuj, |eby zmieni � dane i tagi.
                   </div>
                 </div>
               </div>
 
               {contacts.length === 0 ? (
-                <div style={{ marginTop: 12, opacity: 0.95, color: "var(--text-muted)" }}>Brak kontaktÄ‚łw.</div>
+                <div style={{ marginTop: 12, opacity: 0.95, color: "var(--text-muted)" }}>Brak kontakt�Bw.</div>
               ) : (
                 <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
                   {contacts.map((c) => {
@@ -659,13 +659,13 @@ export default function ContactsPage() {
                               </div>
 
                               <div className="ce-break" style={{ opacity: 0.95, marginTop: 6, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                                {c.phone ? badge(`📊 Ĺľ ${c.phone}`) : null}
-                                {c.email ? badge(`â€°Ä🏠Â¸Ĺą ${c.email}`) : null}
+                                {c.phone ? badge(`=� 9> ${c.phone}`) : null}
+                                {c.email ? badge(` ��<�9 ${c.email}`) : null}
                               </div>
 
                               <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
                                 {c.tags.length === 0 ? (
-                                  <span style={{ opacity: 0.9, fontSize: 13, color: "var(--text-muted)" }}>bez tagÄ‚łw</span>
+                                  <span style={{ opacity: 0.9, fontSize: 13, color: "var(--text-muted)" }}>bez tag�Bw</span>
                                 ) : (
                                   c.tags.map((t) => <span key={t.tagId}>{badge(t.tag.name)}</span>)
                                 )}
@@ -705,7 +705,7 @@ export default function ContactsPage() {
                                   fontWeight: 800,
                                 }}
                               >
-                                UsuÄąâ€ž
+                                Usu�
                               </button>
                             </div>
                           </div>
@@ -761,8 +761,8 @@ export default function ContactsPage() {
                                   outline: "none",
                                 }}
                               >
-                                <option value="SELLER">Sprzedajć…cy</option>
-                                <option value="BUYER">Kupujć…cy</option>
+                                <option value="SELLER">Sprzedaj&cy</option>
+                                <option value="BUYER">Kupuj&cy</option>
                                 <option value="OTHER">Inne</option>
                               </select>
                             </label>
@@ -853,7 +853,7 @@ export default function ContactsPage() {
                               </div>
                               {tags.length === 0 ? (
                                 <div style={{ opacity: 0.95, fontSize: 13, color: "var(--text-muted)" }}>
-                                  Brak tagÄ‚łw â‚¬” dodaj je wyÄąÄ˝ej.
+                                  Brak tag�Bw �� dodaj je wy���ej.
                                 </div>
                               ) : (
                                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -882,7 +882,7 @@ export default function ContactsPage() {
         </div>
 
         <div style={{ opacity: 0.95, marginTop: 18, fontSize: 12, color: "var(--text-muted)" }}>
-          Tip: dodaj tagi â‚¬śVIPâ‚¬ĹĄ, â‚¬śKredytâ‚¬ĹĄ, â‚¬śPilneâ‚¬ĹĄ i filtruj listy klientÄ‚łw w sekundćâ„˘ (zrobimy filtr w nastćâ„˘pnym kroku).
+          Tip: dodaj tagi ��[VIP, ��[Kredyt, ��[Pilne i filtruj listy klient�Bw w sekund�� (zrobimy filtr w nast��pnym kroku).
         </div>
       </div>
     </div>

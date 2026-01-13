@@ -10,7 +10,7 @@ function getOpenAI() {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
 
-  // Import runtime, żeby build nie evaluował modułu OpenAI bez env
+  // Import runtime, |eby build nie evaluowaB moduBu OpenAI bez env
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const OpenAI = require("openai").default as any;
 
@@ -31,7 +31,7 @@ function extractJSON(text: string) {
   }
 }
 
-// Główna funkcja POST do transkrypcji i analizy
+// GB�wna funkcja POST do transkrypcji i analizy
 export async function POST(req: Request) {
   
     const openai = getOpenAI();
@@ -45,14 +45,14 @@ try {
     const formData = await req.formData();
     const file = formData.get("audio") as File | null;
 
-    // Walidacja obecności pliku
+    // Walidacja obecno[ci pliku
     if (!file) {
       return NextResponse.json({ success: false, error: "Brak audio" });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // 1Ä🏠Â¸ĹąÂĹ Transkrypcja
+    // 1�<�9�9� Transkrypcja
     const transcription = await openai.audio.transcriptions.create({
       file: new File([buffer], "audio.webm", { type: file.type }),
       model: "gpt-4o-mini-transcribe",
@@ -67,20 +67,20 @@ try {
       });
     }
 
-    // 2Ä🏠Â¸ĹąÂĹ Analiza AI (Zastosowanie modelu GPT do analizy)
+    // 2�<�9�9� Analiza AI (Zastosowanie modelu GPT do analizy)
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: "Zwracaj WYÄąÂćâ€žCZNIE czysty JSON. Bez markdown, bez ```.",
+          content: "Zwracaj WY��CZNIE czysty JSON. Bez markdown, bez ```.",
         },
         {
           role: "user",
           content: `
-Wycić…gnij dane z notatki gÄąâ€šosowej.
+Wycignij dane z notatki gBosowej.
 
-ZwrÄ‚łćâ€ˇ:
+Zwr�:
 {
   "name": string | null,
   "phone": string | null,
@@ -99,16 +99,16 @@ ${text}
     const raw = completion.choices[0].message.content || "";
     const parsed = extractJSON(raw);
 
-    // Sprawdzenie, czy odpowiedÄąĹ🏠 jest poprawnym JSON
+    // Sprawdzenie, czy odpowiedz jest poprawnym JSON
     if (!parsed) {
       return NextResponse.json({
         success: false,
-        error: "Nie udaÄąâ€šo sićâ„˘ sparsowaćâ€ˇ JSON",
+        error: "Nie udaBo si sparsowa JSON",
         raw,
       });
     }
 
-    // ZwrÄ‚łcenie odpowiedzi w odpowiednim formacie
+    // Zwr�cenie odpowiedzi w odpowiednim formacie
     return NextResponse.json({
       success: true,
       transcript: text,
@@ -126,7 +126,7 @@ ${text}
     console.error("VOICE API ERROR:", err);
     return NextResponse.json({
       success: false,
-      error: err.message || "Nieoczekiwany bÄąâ€šć…d",
+      error: err.message || "Nieoczekiwany bBd",
     });
   }
 }

@@ -30,15 +30,15 @@ type Parking = "brak" | "podziemny" | "naziemny" | "publiczny";
 type Kitchen = "oddzielna" | "aneks";
 type Heating = "miejskie" | "gazowe" | "elektryczne";
 type FinishState =
-  | "gotowe do wejścia"
-  | "do wykończenia"
+  | "gotowe do wej[cia"
+  | "do wykoDczenia"
   | "do remontu"
-  | "do odświeżenia"
+  | "do od[wie|enia"
   | "po remoncie"
   | "stan deweloperski";
-type Market = "pierwotny" | "wtórny";
+type Market = "pierwotny" | "wt�rny";
 
-/** … NOWE: typ nieruchomości (to bć™dzie używane w dokumentach) */
+/** & NOWE: typ nieruchomo[ci (to b"dzie u|ywane w dokumentach) */
 type PropertyType = "mieszkanie" | "dom" | "dzialka" | "grunt" | "lokal_uslugowy";
 
 export type Property = {
@@ -54,7 +54,7 @@ export type Property = {
   finishState: FinishState;
   market: Market;
 
-  /** … NOWE */
+  /** & NOWE */
   propertyType: PropertyType;
 
   price: number;
@@ -90,10 +90,10 @@ const EMPTY_FORM: Property = {
   street: "",
   apartmentNumber: "",
   heating: "miejskie",
-  finishState: "gotowe do wejścia",
-  market: "wtórny",
+  finishState: "gotowe do wej[cia",
+  market: "wt�rny",
 
-  /** … NOWE — domyślnie mieszkanie */
+  /** & NOWE  domy[lnie mieszkanie */
   propertyType: "mieszkanie",
 
   price: 0,
@@ -119,7 +119,7 @@ const EMPTY_FORM: Property = {
 };
 
 function statusLabel(s: Status) {
-  if (s === "dostepna") return "Dostć™pna";
+  if (s === "dostepna") return "Dost"pna";
   if (s === "zarezerwowana") return "Zarezerwowana";
   return "Sprzedana";
 }
@@ -145,16 +145,16 @@ function statusBadgeStyle(s: Status): React.CSSProperties {
 }
 
 function formatMoney(v: number) {
-  if (!v) return "—";
-  return `${v.toLocaleString("pl-PL")} zł`;
+  if (!v) return "";
+  return `${v.toLocaleString("pl-PL")} zB`;
 }
 
 function propertyTypeLabel(t: PropertyType) {
   if (t === "mieszkanie") return "Mieszkanie";
   if (t === "dom") return "Dom";
-  if (t === "dzialka") return "Działka";
+  if (t === "dzialka") return "DziaBka";
   if (t === "grunt") return "Grunt";
-  return "Lokal usługowy";
+  return "Lokal usBugowy";
 }
 
 /* ================= COMPONENT ================= */
@@ -224,7 +224,7 @@ export default function PropertiesPage() {
     const normalized: Property[] = parsed.map((p) => ({
       ...EMPTY_FORM,
       ...p,
-      // … jeśli ktoś miał stare dane bez propertyType — ustaw mieszkanie
+      // & je[li kto[ miaB stare dane bez propertyType  ustaw mieszkanie
       propertyType: (p?.propertyType as PropertyType) || "mieszkanie",
       images: Array.isArray(p.images) ? p.images : [],
     }));
@@ -236,7 +236,7 @@ export default function PropertiesPage() {
     setList(data);
     localStorage.setItem("properties", JSON.stringify(data));
 
-    // … żeby dokumenty od razu €śzobaczyły€ť zmianć™
+    // & |eby dokumenty od razu �[zobaczyBy�e zmian"
     try {
       window.dispatchEvent(new Event("storage"));
     } catch {}
@@ -260,7 +260,7 @@ export default function PropertiesPage() {
 
   const saveProperty = () => {
     if (!form.title || !form.price || !form.area) {
-      alert("Uzupełnij minimum: tytuł, cena, metraż.");
+      alert("UzupeBnij minimum: tytuB, cena, metra|.");
       return;
     }
 
@@ -286,7 +286,7 @@ export default function PropertiesPage() {
   };
 
   const deleteProperty = (id: number) => {
-    if (!confirm("Usunć…ć‡ nieruchomość‡?")) return;
+    if (!confirm("Usun&! nieruchomo[!?")) return;
     persist(list.filter((p) => p.id !== id));
   };
 
@@ -318,7 +318,7 @@ export default function PropertiesPage() {
           propertyTypeLabel(p.propertyType),
         ]
           .filter(Boolean)
-          .join(" €˘ ")
+          .join(" �� ")
           .toLowerCase();
         return hay.includes(needle);
       });
@@ -348,21 +348,21 @@ export default function PropertiesPage() {
               color: "rgba(234,255,251,0.92)",
             }}
           >
-            <span style={{ color: "var(--accent)" }}>—🏠</span> Moduł: Nieruchomości
+            <span style={{ color: "var(--accent)" }}><�</span> ModuB: Nieruchomo[ci
           </div>
 
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-main)" }}>
-            🏠  Nieruchomości
+            <� Nieruchomo[ci
           </h1>
           <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-            Dodawaj oferty, zdjć™cia, parametry i szybko filtruj. Wszystko zapisuje się lokalnie.
+            Dodawaj oferty, zdj"cia, parametry i szybko filtruj. Wszystko zapisuje si lokalnie.
           </p>
         </div>
 
         {/* KPI */}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <Kpi label="Wszystkie" value={stats.all} tone="neutral" />
-          <Kpi label="Dostć™pne" value={stats.available} tone="mint" />
+          <Kpi label="Dost"pne" value={stats.available} tone="mint" />
           <Kpi label="Zarezerw." value={stats.reserved} tone="amber" />
           <Kpi label="Sprzedane" value={stats.sold} tone="red" />
         </div>
@@ -382,7 +382,7 @@ export default function PropertiesPage() {
               <label className="label">Szukaj</label>
               <input
                 className="input"
-                placeholder="np. Mokotów, 3 pokoje, po remoncie€¦"
+                placeholder="np. Mokot�w, 3 pokoje, po remoncie��"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
@@ -392,7 +392,7 @@ export default function PropertiesPage() {
               <label className="label">Status</label>
               <select className="input" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)}>
                 <option value="all">Wszystkie</option>
-                <option value="dostepna">Dostć™pna</option>
+                <option value="dostepna">Dost"pna</option>
                 <option value="zarezerwowana">Zarezerwowana</option>
                 <option value="sprzedana">Sprzedana</option>
               </select>
@@ -402,10 +402,10 @@ export default function PropertiesPage() {
               <label className="label">Sortowanie</label>
               <select className="input" value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}>
                 <option value="newest">Najnowsze</option>
-                <option value="price_desc">Cena †“</option>
-                <option value="price_asc">Cena †‘</option>
-                <option value="area_desc">Metraż †“</option>
-                <option value="area_asc">Metraż †‘</option>
+                <option value="price_desc">Cena  </option>
+                <option value="price_asc">Cena  </option>
+                <option value="area_desc">Metra|  </option>
+                <option value="area_asc">Metra|  </option>
               </select>
             </div>
           </div>
@@ -424,11 +424,11 @@ export default function PropertiesPage() {
                 setSortBy("newest");
               }}
             >
-              Wyczyść‡
+              Wyczy[!
             </button>
 
             <button className="btn-primary" onClick={saveProperty}>
-              {editingId ? "’ľ Zapisz zmiany" : "ž• Dodaj ofertć™"}
+              {editingId ? "> Zapisz zmiany" : "~" Dodaj ofert""}
             </button>
           </div>
         </div>
@@ -445,10 +445,10 @@ export default function PropertiesPage() {
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <h2 className="text-xl font-extrabold" style={{ color: "var(--text-main)" }}>
-              {editingId ? "Edytuj nieruchomość‡" : "Dodaj nieruchomość‡"}
+              {editingId ? "Edytuj nieruchomo[!" : "Dodaj nieruchomo[!"}
             </h2>
             <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-              Minimum: tytuł, cena, metraż. Reszta opcjonalna.
+              Minimum: tytuB, cena, metra|. Reszta opcjonalna.
             </p>
           </div>
 
@@ -465,17 +465,17 @@ export default function PropertiesPage() {
                 setEditingId(null);
               }}
             >
-              Anuluj edycjć™
+              Anuluj edycj"
             </button>
           ) : null}
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="label">Tytuł oferty</label>
+            <label className="label">TytuB oferty</label>
             <input
               className="input"
-              placeholder="np. 3 pokoje, Mokotów"
+              placeholder="np. 3 pokoje, Mokot�w"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
@@ -488,15 +488,15 @@ export default function PropertiesPage() {
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as Status })}
             >
-              <option value="dostepna">Dostć™pna</option>
+              <option value="dostepna">Dost"pna</option>
               <option value="zarezerwowana">Zarezerwowana</option>
               <option value="sprzedana">Sprzedana</option>
             </select>
           </div>
 
-          {/* … NOWE: typ nieruchomości */}
+          {/* & NOWE: typ nieruchomo[ci */}
           <div>
-            <label className="label">Rodzaj nieruchomości</label>
+            <label className="label">Rodzaj nieruchomo[ci</label>
             <select
               className="input"
               value={form.propertyType}
@@ -504,9 +504,9 @@ export default function PropertiesPage() {
             >
               <option value="mieszkanie">Mieszkanie</option>
               <option value="dom">Dom</option>
-              <option value="dzialka">Działka</option>
+              <option value="dzialka">DziaBka</option>
               <option value="grunt">Grunt</option>
-              <option value="lokal_uslugowy">Lokal usługowy</option>
+              <option value="lokal_uslugowy">Lokal usBugowy</option>
             </select>
           </div>
 
@@ -578,7 +578,7 @@ export default function PropertiesPage() {
           <div className="md:col-span-2">
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               <div>
-                <label className="label">Cena (zł)</label>
+                <label className="label">Cena (zB)</label>
                 <input
                   className="input"
                   type="number"
@@ -587,7 +587,7 @@ export default function PropertiesPage() {
                 />
               </div>
               <div>
-                <label className="label">Metraż (m˛)</label>
+                <label className="label">Metra| (m�)</label>
                 <input
                   className="input"
                   type="number"
@@ -605,7 +605,7 @@ export default function PropertiesPage() {
                 />
               </div>
               <div>
-                <label className="label">Ĺazienki</label>
+                <label className="label">9�azienki</label>
                 <input
                   className="input"
                   type="number"
@@ -630,16 +630,16 @@ export default function PropertiesPage() {
           </div>
 
           <div>
-            <label className="label">Stan wykończenia</label>
+            <label className="label">Stan wykoDczenia</label>
             <select
               className="input"
               value={form.finishState}
               onChange={(e) => setForm({ ...form, finishState: e.target.value as FinishState })}
             >
-              <option value="gotowe do wejścia">Gotowe do wejścia</option>
-              <option value="do wykończenia">Do wykończenia</option>
+              <option value="gotowe do wej[cia">Gotowe do wej[cia</option>
+              <option value="do wykoDczenia">Do wykoDczenia</option>
               <option value="do remontu">Do remontu</option>
-              <option value="do odświeżenia">Do odświeżenia</option>
+              <option value="do od[wie|enia">Do od[wie|enia</option>
               <option value="po remoncie">Po remoncie</option>
               <option value="stan deweloperski">Stan deweloperski</option>
             </select>
@@ -653,7 +653,7 @@ export default function PropertiesPage() {
               onChange={(e) => setForm({ ...form, market: e.target.value as Market })}
             >
               <option value="pierwotny">Pierwotny</option>
-              <option value="wtórny">Wtórny</option>
+              <option value="wt�rny">Wt�rny</option>
             </select>
           </div>
 
@@ -664,12 +664,12 @@ export default function PropertiesPage() {
               value={form.ownership}
               onChange={(e) => setForm({ ...form, ownership: e.target.value })}
             >
-              <option value="">— wybierz —</option>
-              <option value="pełna własność‡">Pełna własność‡</option>
-              <option value="spółdzielcze własnościowe">Spółdzielcze własnościowe</option>
-              <option value="spółdzielcze własnościowe z KW">Spółdzielcze własnościowe z KW</option>
-              <option value="z możliwościć… założenia KW">Z możliwościć… założenia KW</option>
-              <option value="udziały">Udziały</option>
+              <option value=""> wybierz </option>
+              <option value="peBna wBasno[!">PeBna wBasno[!</option>
+              <option value="sp�Bdzielcze wBasno[ciowe">Sp�Bdzielcze wBasno[ciowe</option>
+              <option value="sp�Bdzielcze wBasno[ciowe z KW">Sp�Bdzielcze wBasno[ciowe z KW</option>
+              <option value="z mo|liwo[ci& zaBo|enia KW">Z mo|liwo[ci& zaBo|enia KW</option>
+              <option value="udziaBy">UdziaBy</option>
             </select>
           </div>
 
@@ -707,7 +707,7 @@ export default function PropertiesPage() {
             ["balkon", "Balkon"],
             ["loggia", "Loggia"],
             ["piwnica", "Piwnica"],
-            ["komorka", "Komórka lok."],
+            ["komorka", "Kom�rka lok."],
           ].map(([k, label]) => (
             <label
               key={k}
@@ -733,7 +733,7 @@ export default function PropertiesPage() {
           <label className="label">Opis</label>
           <textarea
             className="input h-28 resize-y"
-            placeholder="Opis nieruchomości"
+            placeholder="Opis nieruchomo[ci"
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
@@ -741,7 +741,7 @@ export default function PropertiesPage() {
 
         {/* upload */}
         <div className="mt-5">
-          <label className="label">Zdjć™cia</label>
+          <label className="label">Zdj"cia</label>
           <div
             className="rounded-2xl p-4"
             style={{
@@ -768,7 +768,7 @@ export default function PropertiesPage() {
               </div>
             ) : (
               <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                Dodaj zdjć™cia, żeby wygodnie przeglć…dać‡ oferty w kafelkach.
+                Dodaj zdj"cia, |eby wygodnie przegl&da! oferty w kafelkach.
               </p>
             )}
           </div>
@@ -795,7 +795,7 @@ export default function PropertiesPage() {
             style={{ background: "var(--bg-card)", border: "1px solid var(--border-soft)" }}
           >
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-              Brak wyników. Zmień filtry lub dodaj nowć… nieruchomość‡.
+              Brak wynik�w. ZmieD filtry lub dodaj now& nieruchomo[!.
             </p>
           </div>
         ) : (
@@ -843,7 +843,7 @@ export default function PropertiesPage() {
                             }));
                           }}
                         >
-                          —€
+                          �
                         </button>
 
                         <button
@@ -861,7 +861,7 @@ export default function PropertiesPage() {
                             }));
                           }}
                         >
-                          –¶
+                          �
                         </button>
                       </>
                     ) : null}
@@ -884,7 +884,7 @@ export default function PropertiesPage() {
                       color: "var(--text-muted)",
                     }}
                   >
-                    Brak zdjć™ć‡
+                    Brak zdj"!
                   </div>
                 )}
 
@@ -893,15 +893,15 @@ export default function PropertiesPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-lg font-extrabold leading-snug" style={{ color: "var(--text-main)" }}>
-                        {p.title || "—"}
+                        {p.title || ""}
                       </h3>
                       <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-                        {p.city || "—"}
+                        {p.city || ""}
                         {p.district ? `, ${p.district}` : ""}
-                        {p.street ? ` €˘ ${p.street}` : ""}
+                        {p.street ? ` �� ${p.street}` : ""}
                       </p>
 
-                      {/* … pokaz typu */}
+                      {/* & pokaz typu */}
                       <p className="mt-1 text-xs font-extrabold" style={{ color: "rgba(234,255,251,0.90)" }}>
                         {propertyTypeLabel(p.propertyType)}
                       </p>
@@ -912,16 +912,16 @@ export default function PropertiesPage() {
                         {formatMoney(p.price)}
                       </div>
                       <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                        {p.area ? `${p.area} m˛` : "—"} {p.rooms ? `€˘ ${p.rooms} pok.` : ""}
+                        {p.area ? `${p.area} m�` : ""} {p.rooms ? `�� ${p.rooms} pok.` : ""}
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-4 grid grid-cols-2 gap-2 text-sm" style={{ color: "var(--text-main)" }}>
-                    <InfoPill label="“ Metraż" value={p.area ? `${p.area} m˛` : "—"} />
-                    <InfoPill label="›🏠 Pokoje" value={p.rooms ? `${p.rooms}` : "—"} />
-                    <InfoPill label="🏠˘ Pić™tro" value={`${p.floor ?? "—"}`} />
-                    <InfoPill label="§ľ Czynsz" value={p.rent ? `${p.rent.toLocaleString("pl-PL")} zł` : "—"} />
+                    <InfoPill label="� Metra|" value={p.area ? `${p.area} m�` : ""} />
+                    <InfoPill label=":<� Pokoje" value={p.rooms ? `${p.rooms}` : ""} />
+                    <InfoPill label="<�� Pi"tro" value={`${p.floor ?? ""}`} />
+                    <InfoPill label="�> Czynsz" value={p.rent ? `${p.rent.toLocaleString("pl-PL")} zB` : ""} />
                   </div>
 
                   {p.description ? (
@@ -941,7 +941,7 @@ export default function PropertiesPage() {
                         color: "var(--text-main)",
                       }}
                     >
-                      🏠ď¸🏠 Edytuj
+                      <��<� Edytuj
                     </button>
                     <button
                       onClick={() => deleteProperty(p.id)}
@@ -952,7 +952,7 @@ export default function PropertiesPage() {
                         color: "rgba(255,220,220,0.95)",
                       }}
                     >
-                      —‘ Usuń
+                       UsuD
                     </button>
                   </div>
                 </div>
@@ -987,7 +987,7 @@ export default function PropertiesPage() {
                     border: "1px solid rgba(255,255,255,0.20)",
                   }}
                 >
-                  —€
+                  �
                 </button>
                 <button
                   onClick={() => setPreviewIndex((previewIndex + 1) % previewImages.length)}
@@ -998,7 +998,7 @@ export default function PropertiesPage() {
                     border: "1px solid rgba(255,255,255,0.20)",
                   }}
                 >
-                  –¶
+                  �
                 </button>
               </>
             ) : null}
@@ -1012,13 +1012,13 @@ export default function PropertiesPage() {
               }}
               onClick={() => setPreviewImage(null)}
             >
-              • Zamknij
+              " Zamknij
             </button>
           </div>
         </div>
       ) : null}
 
-      {/* minimalny CSS €śsystemowy€ť dla input/label */}
+      {/* minimalny CSS �[systemowy�e dla input/label */}
       <style jsx>{`
   .input {
     width: 100%;
@@ -1034,14 +1034,14 @@ export default function PropertiesPage() {
     -moz-appearance: none;
   }
 
-  /* ”Ą FIX DLA SELECT */
+  /*  FIX DLA SELECT */
   select.input {
     background-color: rgba(7, 13, 24, 0.85);
     color: rgba(234, 255, 251, 0.95);
     cursor: pointer;
   }
 
-  /* ”Ą OPCJE W DROPDOWNIE */
+  /*  OPCJE W DROPDOWNIE */
   select.input option {
     background: rgb(7, 13, 24);
     color: rgba(234, 255, 251, 0.95);
@@ -1160,8 +1160,8 @@ function SuggestList({
           }}
         >
           <div className="font-extrabold" style={{ color: "rgba(234,255,251,0.95)" }}>
-            {s.address.city || s.address.town || s.address.village || "—"}
-            {s.address.suburb ? ` €˘ ${s.address.suburb}` : ""}
+            {s.address.city || s.address.town || s.address.village || ""}
+            {s.address.suburb ? ` �� ${s.address.suburb}` : ""}
           </div>
           <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
             {s.display_name}

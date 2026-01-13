@@ -11,17 +11,17 @@ type Property = {
   district: string;
   street: string;
   propertyType?: PropertyType;
-  ownership?: string; // "peÄąâ€šna wÄąâ€šasnoÄąâ€şćâ€ˇ" / "spÄ‚łÄąâ€šdzielcze..." itd.
+  ownership?: string; // "pe� ana w� aasno� _ �" / "sp�B� adzielcze..." itd.
 };
 
 type ItemGroup =
   | "Podstawowe"
-  | "Finanse i opÄąâ€šaty"
-  | "WspÄ‚łlnota/SpÄ‚łÄąâ€šdzielnia"
-  | "Urzć…d i formalnoÄąâ€şci"
+  | "Finanse i op� aaty"
+  | "Wsp�Blnota/Sp�B� adzielnia"
+  | "Urz&d i formalno� _ci"
   | "Dokumenty techniczne"
-  | "Grunty / DziaÄąâ€ški"
-  | "Lokal usÄąâ€šugowy"
+  | "Grunty / Dzia� aki"
+  | "Lokal us� augowy"
   | "Dom"
   | "Dodatkowe sytuacyjne";
 
@@ -40,16 +40,16 @@ function checklistKey(propertyId: string) {
 function typeLabel(t?: PropertyType) {
   if (t === "mieszkanie") return "Mieszkanie";
   if (t === "dom") return "Dom";
-  if (t === "dzialka") return "DziaÄąâ€ška";
+  if (t === "dzialka") return "Dzia� aka";
   if (t === "grunt") return "Grunt";
-  if (t === "lokal_uslugowy") return "Lokal usÄąâ€šugowy";
-  return "â‚¬”";
+  if (t === "lokal_uslugowy") return "Lokal us� augowy";
+  return "��";
 }
 
 function ownershipKind(ownership?: string): "pelna" | "spoldzielcze" | "inne" {
   const o = (ownership || "").toLowerCase();
-  if (o.includes("spÄ‚łÄąâ€šdziel")) return "spoldzielcze";
-  if (o.includes("peÄąâ€šna")) return "pelna";
+  if (o.includes("sp�B� adziel")) return "spoldzielcze";
+  if (o.includes("pe� ana")) return "pelna";
   return ownership ? "inne" : "pelna";
 }
 
@@ -63,7 +63,7 @@ function safeReadChecked(propertyId: number): Record<string, boolean> {
 }
 
 /** =======================
- *  DOKUMENTY â‚¬📊  BAZA
+ *  DOKUMENTY ��=�  BAZA
  *  ======================= */
 
 const BASE_ITEMS: Item[] = [
@@ -71,8 +71,8 @@ const BASE_ITEMS: Item[] = [
     id: "id_docs",
     group: "Podstawowe",
     required: true,
-    title: "Dokument toÄąÄ˝samoÄąâ€şci sprzedajć…cego",
-    description: "DowÄ‚łd osobisty/paszport â‚¬📊  potrzebne u notariusza.",
+    title: "Dokument to���samo� _ci sprzedaj&cego",
+    description: "Dow�Bd osobisty/paszport ��=�  potrzebne u notariusza.",
   },
   {
     id: "title_deed",
@@ -80,80 +80,80 @@ const BASE_ITEMS: Item[] = [
     required: true,
     title: "Podstawa nabycia (akt / postanowienie / umowa)",
     description:
-      "Np. akt notarialny kupna/darowizny, postanowienie o nabyciu spadku, dziaÄąâ€š spadku, podziaÄąâ€š majć…tku.",
+      "Np. akt notarialny kupna/darowizny, postanowienie o nabyciu spadku, dzia� a spadku, podzia� a maj&tku.",
   },
   {
     id: "kw_number",
     group: "Podstawowe",
     required: false,
-    title: "Numer ksićâ„˘gi wieczystej (jeÄąâ€şli jest)",
+    title: "Numer ksi��gi wieczystej (je� _li jest)",
     description:
-      "JeÄąâ€şli jest KW â‚¬📊  numer do sprawdzenia dziaÄąâ€šÄ‚łw IIâ‚¬📊 IV (wÄąâ€šasnoÄąâ€şćâ€ˇ, roszczenia, hipoteki).",
+      "Je� _li jest KW ��=�  numer do sprawdzenia dzia� a�Bw II��=� IV (w� aasno� _ �, roszczenia, hipoteki).",
   },
   {
     id: "property_data",
     group: "Podstawowe",
     required: true,
-    title: "Dane nieruchomoÄąâ€şci (adres, powierzchnia, pomieszczenia)",
-    description: "Zwykle z aktu/zaÄąâ€şwiadczeÄąâ€ž. Przydaje sićâ„˘ teÄąÄ˝ rzut/plan.",
+    title: "Dane nieruchomo� _ci (adres, powierzchnia, pomieszczenia)",
+    description: "Zwykle z aktu/za� _wiadcze�. Przydaje si�� te��� rzut/plan.",
   },
 
   {
     id: "loan_bank_docs",
-    group: "Finanse i opÄąâ€šaty",
+    group: "Finanse i op� aaty",
     required: false,
-    title: "JeÄąâ€şli jest kredyt/hipoteka: zaÄąâ€şwiadczenie z banku + promesa",
+    title: "Je� _li jest kredyt/hipoteka: za� _wiadczenie z banku + promesa",
     description:
-      "Saldo zadÄąâ€šuÄąÄ˝enia + promesa/zgoda na wykreÄąâ€şlenie hipoteki po spÄąâ€šacie (zaleÄąÄ˝y od banku).",
+      "Saldo zad� au���enia + promesa/zgoda na wykre� _lenie hipoteki po sp� aacie (zale���y od banku).",
   },
   {
     id: "no_arrears",
-    group: "Finanse i opÄąâ€šaty",
+    group: "Finanse i op� aaty",
     required: false,
-    title: "Potwierdzenie braku zalegÄąâ€šoÄąâ€şci w opÄąâ€šatach",
+    title: "Potwierdzenie braku zaleg� ao� _ci w op� aatach",
     description:
-      "Czynsz/zaliczki/media â‚¬📊  czćâ„˘sto wymagane przez kupujć…cego/bank. Zwykle od zarzć…dcy/wspÄ‚łlnoty/spÄ‚łÄąâ€šdzielni.",
+      "Czynsz/zaliczki/media ��=�  cz��sto wymagane przez kupuj&cego/bank. Zwykle od zarz&dcy/wsp�Blnoty/sp�B� adzielni.",
   },
 
   {
     id: "no_meldunek",
-    group: "Urzć…d i formalnoÄąâ€şci",
+    group: "Urz&d i formalno� _ci",
     required: false,
-    title: "ZaÄąâ€şwiadczenie o braku osÄ‚łb zameldowanych (jeÄąâ€şli wymagane)",
+    title: "Za� _wiadczenie o braku os�Bb zameldowanych (je� _li wymagane)",
     description:
-      "Czćâ„˘sto wymagane przez kupujć…cego/bank. Urzć…d miasta/gminy. Czasem wystarczy oÄąâ€şwiadczenie.",
+      "Cz��sto wymagane przez kupuj&cego/bank. Urz&d miasta/gminy. Czasem wystarczy o� _wiadczenie.",
   },
   {
     id: "energy_cert",
-    group: "Urzć…d i formalnoÄąâ€şci",
+    group: "Urz&d i formalno� _ci",
     required: false,
-    title: "ÄąĹˇwiadectwo charakterystyki energetycznej (jeÄąâ€şli wymagane)",
+    title: "�9�wiadectwo charakterystyki energetycznej (je� _li wymagane)",
     description:
-      "W wielu transakcjach wymagane. JeÄąâ€şli brak â‚¬📊  moÄąÄ˝na zamÄ‚łwićâ€ˇ u uprawnionej osoby.",
+      "W wielu transakcjach wymagane. Je� _li brak ��=�  mo���na zam�Bwi � u uprawnionej osoby.",
   },
 
   {
     id: "power_of_attorney",
     group: "Dodatkowe sytuacyjne",
     required: false,
-    title: "PeÄąâ€šnomocnictwo (jeÄąâ€şli ktoÄąâ€ş podpisuje za sprzedajć…cego)",
-    description: "Zwykle peÄąâ€šnomocnictwo notarialne (zaleÄąÄ˝nie od notariusza).",
+    title: "Pe� anomocnictwo (je� _li kto� _ podpisuje za sprzedaj&cego)",
+    description: "Zwykle pe� anomocnictwo notarialne (zale���nie od notariusza).",
   },
   {
     id: "marriage_regime",
     group: "Dodatkowe sytuacyjne",
     required: false,
-    title: "JeÄąâ€şli maÄąâ€šÄąÄ˝eÄąâ€žstwo: dokumenty dot. ustroju majć…tkowego",
+    title: "Je� _li ma� a���e�stwo: dokumenty dot. ustroju maj&tkowego",
     description:
-      "Czasem wymagana zgoda maÄąâ€šÄąÄ˝onka/rozdzielnoÄąâ€şćâ€ˇ majć…tkowa â‚¬📊  zaleÄąÄ˝y od stanu prawnego i aktu nabycia.",
+      "Czasem wymagana zgoda ma� a���onka/rozdzielno� _ � maj&tkowa ��=�  zale���y od stanu prawnego i aktu nabycia.",
   },
   {
     id: "inheritance_docs",
     group: "Dodatkowe sytuacyjne",
     required: false,
-    title: "JeÄąâ€şli spadek: postanowienie/akt poÄąâ€şwiadczenia + dziaÄąâ€š spadku (jeÄąâ€şli byÄąâ€š)",
+    title: "Je� _li spadek: postanowienie/akt po� _wiadczenia + dzia� a spadku (je� _li by� a)",
     description:
-      "Dokumenty potwierdzajć…ce nabycie w spadku i ewentualne zniesienie wspÄ‚łÄąâ€šwÄąâ€šasnoÄąâ€şci / dziaÄąâ€š spadku.",
+      "Dokumenty potwierdzaj&ce nabycie w spadku i ewentualne zniesienie wsp�B� aw� aasno� _ci / dzia� a spadku.",
   },
 ];
 
@@ -164,11 +164,11 @@ const BASE_ITEMS: Item[] = [
 const APARTMENT_COMMON: Item[] = [
   {
     id: "community_cert",
-    group: "WspÄ‚łlnota/SpÄ‚łÄąâ€šdzielnia",
+    group: "Wsp�Blnota/Sp�B� adzielnia",
     required: false,
-    title: "ZaÄąâ€şwiadczenie ze wspÄ‚łlnoty/spÄ‚łÄąâ€šdzielni (opÄąâ€šaty, brak zalegÄąâ€šoÄąâ€şci)",
+    title: "Za� _wiadczenie ze wsp�Blnoty/sp�B� adzielni (op� aaty, brak zaleg� ao� _ci)",
     description:
-      "Dokument o opÄąâ€šatach i ewentualnych zalegÄąâ€šoÄąâ€şciach; czćâ„˘sto potrzebny do aktu lub dla kupujć…cego/banku.",
+      "Dokument o op� aatach i ewentualnych zaleg� ao� _ciach; cz��sto potrzebny do aktu lub dla kupuj&cego/banku.",
   },
 ];
 
@@ -178,19 +178,19 @@ const APARTMENT_OWNERSHIP: Record<"pelna" | "spoldzielcze" | "inne", Item[]> = {
       id: "ap_kw_recommended",
       group: "Podstawowe",
       required: false,
-      title: "Ksićâ„˘ga wieczysta (jeÄąâ€şli jest) â‚¬📊  wskazane",
+      title: "Ksi��ga wieczysta (je� _li jest) ��=�  wskazane",
       description:
-        "Przy peÄąâ€šnej wÄąâ€šasnoÄąâ€şci KW zwykle istnieje; kupujć…cy/bank czćâ„˘sto bćâ„˘dzie tego oczekiwaÄąâ€š.",
+        "Przy pe� anej w� aasno� _ci KW zwykle istnieje; kupuj&cy/bank cz��sto b��dzie tego oczekiwa� a.",
     },
   ],
   spoldzielcze: [
     {
       id: "spoldzielcze_right",
-      group: "WspÄ‚łlnota/SpÄ‚łÄąâ€šdzielnia",
+      group: "Wsp�Blnota/Sp�B� adzielnia",
       required: true,
-      title: "ZaÄąâ€şwiadczenie o przysÄąâ€šugujć…cym prawie (spÄ‚łÄąâ€šdzielcze wÄąâ€šasnoÄąâ€şciowe)",
+      title: "Za� _wiadczenie o przys� auguj&cym prawie (sp�B� adzielcze w� aasno� _ciowe)",
       description:
-        "Wydaje spÄ‚łÄąâ€šdzielnia. Kluczowe szczegÄ‚łlnie, gdy lokal nie ma ksićâ„˘gi wieczystej.",
+        "Wydaje sp�B� adzielnia. Kluczowe szczeg�Blnie, gdy lokal nie ma ksi��gi wieczystej.",
     },
   ],
   inne: [
@@ -198,9 +198,9 @@ const APARTMENT_OWNERSHIP: Record<"pelna" | "spoldzielcze" | "inne", Item[]> = {
       id: "ap_other_right",
       group: "Podstawowe",
       required: false,
-      title: "Dokument potwierdzajć…cy formćâ„˘ prawa (np. udziaÄąâ€š / inne)",
+      title: "Dokument potwierdzaj&cy form�� prawa (np. udzia� a / inne)",
       description:
-        "JeÄąâ€şli forma prawa jest nietypowa â‚¬📊  warto miećâ€ˇ dokumenty wyjaÄąâ€şniajć…ce stan prawny (najlepiej skonsultowaćâ€ˇ z notariuszem).",
+        "Je� _li forma prawa jest nietypowa ��=�  warto mie � dokumenty wyja� _niaj&ce stan prawny (najlepiej skonsultowa � z notariuszem).",
     },
   ],
 };
@@ -214,63 +214,63 @@ const HOUSE_EXTRA: Item[] = [
     id: "house_docs",
     group: "Dom",
     required: false,
-    title: "Dokumenty budynku (pozwolenie/odbiÄ‚łr/projekt â‚¬📊  jeÄąâ€şli dotyczy)",
+    title: "Dokumenty budynku (pozwolenie/odbi�Br/projekt ��=�  je� _li dotyczy)",
     description:
-      "SzczegÄ‚łlnie waÄąÄ˝ne przy nowszych domach lub rozbudowach. JeÄąâ€şli nie masz â‚¬📊  ustal z notariuszem.",
+      "Szczeg�Blnie wa���ne przy nowszych domach lub rozbudowach. Je� _li nie masz ��=�  ustal z notariuszem.",
   },
 ];
 
 /** =======================
- *  GRUNT / DZIAÄąÂKA
+ *  GRUNT / DZIA��KA
  *  ======================= */
 
 const LAND_EXTRA: Item[] = [
   {
     id: "land_registry_extract",
-    group: "Grunty / DziaÄąâ€ški",
+    group: "Grunty / Dzia� aki",
     required: false,
-    title: "Wypis z rejestru gruntÄ‚łw + wyrys z mapy ewidencyjnej",
+    title: "Wypis z rejestru grunt�Bw + wyrys z mapy ewidencyjnej",
     description:
-      "Zwykle ze starostwa. Pomaga potwierdzićâ€ˇ dane dziaÄąâ€ški, klasouÄąÄ˝ytki, powierzchnićâ„˘.",
+      "Zwykle ze starostwa. Pomaga potwierdzi � dane dzia� aki, klasou���ytki, powierzchni��.",
   },
   {
     id: "land_mpzp",
-    group: "Grunty / DziaÄąâ€ški",
+    group: "Grunty / Dzia� aki",
     required: false,
-    title: "MPZP / WZ (plan miejscowy lub warunki zabudowy) â‚¬📊  jeÄąâ€şli istotne",
+    title: "MPZP / WZ (plan miejscowy lub warunki zabudowy) ��=�  je� _li istotne",
     description:
-      "JeÄąâ€şli kupujć…cy planuje budowćâ„˘, bćâ„˘dzie pytaÄąâ€š o przeznaczenie terenu i ograniczenia.",
+      "Je� _li kupuj&cy planuje budow��, b��dzie pyta� a o przeznaczenie terenu i ograniczenia.",
   },
   {
     id: "land_access_road",
-    group: "Grunty / DziaÄąâ€ški",
+    group: "Grunty / Dzia� aki",
     required: false,
-    title: "Dostćâ„˘p do drogi (sÄąâ€šuÄąÄ˝ebnoÄąâ€şćâ€ˇ/udziaÄąâ€š) â‚¬📊  jeÄąâ€şli dotyczy",
+    title: "Dost��p do drogi (s� au���ebno� _ �/udzia� a) ��=�  je� _li dotyczy",
     description:
-      "WaÄąÄ˝ne, jeÄąâ€şli nie ma bezpoÄąâ€şredniego dostćâ„˘pu do drogi publicznej.",
+      "Wa���ne, je� _li nie ma bezpo� _redniego dost��pu do drogi publicznej.",
   },
 ];
 
 /** =======================
- *  LOKAL USÄąÂUGOWY
+ *  LOKAL US��UGOWY
  *  ======================= */
 
 const COMMERCIAL_EXTRA: Item[] = [
   {
     id: "commercial_lease",
-    group: "Lokal usÄąâ€šugowy",
+    group: "Lokal us� augowy",
     required: false,
-    title: "Umowy najmu (jeÄąâ€şli lokal jest wynajmowany)",
+    title: "Umowy najmu (je� _li lokal jest wynajmowany)",
     description:
-      "JeÄąâ€şli sprzedajesz lokal z najemcć… â‚¬📊  przygotuj umowy, aneksy, terminy wypowiedzeÄąâ€ž, kaucje.",
+      "Je� _li sprzedajesz lokal z najemc& ��=�  przygotuj umowy, aneksy, terminy wypowiedze�, kaucje.",
   },
   {
     id: "commercial_company_docs",
-    group: "Lokal usÄąâ€šugowy",
+    group: "Lokal us� augowy",
     required: false,
-    title: "JeÄąâ€şli sprzedaje firma: dokumenty firmowe (KRS/CEIDG, peÄąâ€šnomocnictwa)",
+    title: "Je� _li sprzedaje firma: dokumenty firmowe (KRS/CEIDG, pe� anomocnictwa)",
     description:
-      "Notariusz moÄąÄ˝e wymagaćâ€ˇ dokumentÄ‚łw rejestrowych i umocowania.",
+      "Notariusz mo���e wymaga � dokument�Bw rejestrowych i umocowania.",
   },
 ];
 
@@ -301,10 +301,10 @@ export default function SaleDocumentsChecklist() {
   const [showOnlyMissing, setShowOnlyMissing] = useState(false);
   const [search, setSearch] = useState("");
 
-  // … NOWE: historia â‚¬” ktÄ‚łry wpis rozwinićâ„˘ty
+  // & NOWE: historia �� kt�Bry wpis rozwini��ty
   const [historyOpenId, setHistoryOpenId] = useState<number | null>(null);
 
-  // … NOWE: żeby historia sićâ„˘ odÄąâ€şwieÄąÄ˝aÄąâ€ša po klikaniu checkboxÄ‚łw
+  // & NOWE: |eby historia si�� od� _wie���a� aa po klikaniu checkbox�Bw
   const [historyTick, setHistoryTick] = useState(0);
 
   useEffect(() => {
@@ -346,7 +346,7 @@ export default function SaleDocumentsChecklist() {
     try {
       localStorage.setItem(checklistKey(String(activeId)), JSON.stringify(checked));
     } catch {}
-    // … odÄąâ€şwieÄąÄ˝ historićâ„˘ (skrÄ‚łty)
+    // & od� _wie��� histori�� (skr�Bty)
     setHistoryTick((x) => x + 1);
   }, [checked, activeId]);
 
@@ -386,7 +386,7 @@ export default function SaleDocumentsChecklist() {
     return { total, done, left: total - done };
   }, [items, checked]);
 
-  // … NOWE: dane â‚¬śhistoria / skrÄ‚łtâ‚¬ĹĄ dla kaÄąÄ˝dej nieruchomoÄąâ€şci
+  // & NOWE: dane ��[historia / skr�Bt dla ka���dej nieruchomo� _ci
   const history = useMemo(() => {
     return properties.map((p) => {
       const docItems = buildItems(p);
@@ -515,7 +515,7 @@ export default function SaleDocumentsChecklist() {
       color: "rgba(255,255,255,0.85)",
     } as const,
 
-    // … NOWE: kafelki historii
+    // & NOWE: kafelki historii
     histRow: (open: boolean) =>
       ({
         display: "flex",
@@ -568,28 +568,28 @@ export default function SaleDocumentsChecklist() {
   };
 
   const propertyLabel = (p: Property) => {
-    const parts = [p.title?.trim() || "NieruchomoÄąâ€şćâ€ˇ", [p.city, p.street].filter(Boolean).join(", ")].filter(Boolean);
-    return parts.join(" â‚¬” ");
+    const parts = [p.title?.trim() || "Nieruchomo� _ �", [p.city, p.street].filter(Boolean).join(", ")].filter(Boolean);
+    return parts.join(" �� ");
   };
 
   return (
     <div style={S.wrap}>
       <div style={S.row}>
         <div style={{ flex: "1 1 360px" }}>
-          <div style={S.h1}>📊 â€ž Dokumenty do sprzedaÄąÄ˝y</div>
+          <div style={S.h1}>=�  Dokumenty do sprzeda���y</div>
           <div style={{ ...S.muted, marginTop: 6, fontSize: 13 }}>
-            Wybierz nieruchomoÄąâ€şćâ€ˇ i odhacz dokumenty. Lista dopasowuje sićâ„˘ do rodzaju.
+            Wybierz nieruchomo� _ � i odhacz dokumenty. Lista dopasowuje si�� do rodzaju.
           </div>
         </div>
 
         <div style={S.pill}>
-          {activeProperty ? `… ${stats.done}/${stats.total} â‚¬Ë ZostaÄąâ€šo: ${stats.left}` : "Brak nieruchomoÄąâ€şci"}
+          {activeProperty ? `& ${stats.done}/${stats.total} ��˘ Zosta� ao: ${stats.left}` : "Brak nieruchomo� _ci"}
         </div>
       </div>
 
       <div style={S.card}>
         <div style={{ ...S.row, justifyContent: "space-between" }}>
-          <div style={{ fontWeight: 900 }}>ĹąÂ  NieruchomoÄąâ€şćâ€ˇ</div>
+          <div style={{ fontWeight: 900 }}>9� Nieruchomo� _ �</div>
           <button style={S.button} onClick={reset} disabled={!activeProperty}>
             Reset checklisty
           </button>
@@ -602,7 +602,7 @@ export default function SaleDocumentsChecklist() {
             style={{ ...S.input, minWidth: 280, flex: "1 1 280px", appearance: "none" }}
           >
             {properties.length === 0 ? (
-              <option value="">Brak nieruchomoÄąâ€şci</option>
+              <option value="">Brak nieruchomo� _ci</option>
             ) : (
               properties.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -616,7 +616,7 @@ export default function SaleDocumentsChecklist() {
             <>
               <div style={S.badge}>{typeLabel(activeProperty.propertyType)}</div>
               {activeProperty.propertyType === "mieszkanie" && activeProperty.ownership ? (
-                <div style={{ ...S.muted, fontSize: 12 }}>WÄąâ€šasnoÄąâ€şćâ€ˇ: {activeProperty.ownership}</div>
+                <div style={{ ...S.muted, fontSize: 12 }}>W� aasno� _ �: {activeProperty.ownership}</div>
               ) : null}
             </>
           ) : null}
@@ -625,11 +625,11 @@ export default function SaleDocumentsChecklist() {
 
       <div style={S.card}>
         <div style={{ fontWeight: 900, marginBottom: 10 }}>
-          … Checklista {activeProperty ? `â‚¬” ${propertyLabel(activeProperty)}` : ""}
+          & Checklista {activeProperty ? `�� ${propertyLabel(activeProperty)}` : ""}
         </div>
 
         {!activeProperty ? (
-          <div style={{ ...S.muted, fontSize: 13 }}>Dodaj nieruchomoÄąâ€şćâ€ˇ w module NieruchomoÄąâ€şci.</div>
+          <div style={{ ...S.muted, fontSize: 13 }}>Dodaj nieruchomo� _ � w module Nieruchomo� _ci.</div>
         ) : (
           <>
             <div style={{ ...S.row, marginBottom: 10 }}>
@@ -637,7 +637,7 @@ export default function SaleDocumentsChecklist() {
                 style={{ ...S.input, minWidth: 260, flex: "1 1 260px" }}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Szukajâ‚¬Â¦"
+                placeholder="Szukaj���"
               />
 
               <label
@@ -678,7 +678,7 @@ export default function SaleDocumentsChecklist() {
                             <div style={S.titleRow}>
                               <div style={S.title}>
                                 {it.title}
-                                {it.required ? <span style={{ ...S.muted, marginLeft: 8 }}>â‚¬Ë wymagane</span> : null}
+                                {it.required ? <span style={{ ...S.muted, marginLeft: 8 }}>��˘ wymagane</span> : null}
                               </div>
 
                               <button
@@ -689,7 +689,7 @@ export default function SaleDocumentsChecklist() {
                                   toggleExpand(it.id);
                                 }}
                               >
-                                {expanded[it.id] ? "Ukryj" : "SzczegÄ‚łÄąâ€šy"}
+                                {expanded[it.id] ? "Ukryj" : "Szczeg�B� ay"}
                               </button>
                             </div>
 
@@ -706,11 +706,11 @@ export default function SaleDocumentsChecklist() {
         )}
       </div>
 
-      {/* … NOWE: HISTORIA / SKRÄ‚📊 T */}
+      {/* & NOWE: HISTORIA / SKR�=� T */}
       <div style={S.card}>
-        <div style={{ fontWeight: 900, marginBottom: 10 }}>â€˘Â Historia / skrÄ‚łt dokumentÄ‚łw</div>
+        <div style={{ fontWeight: 900, marginBottom: 10 }}> ؘ Historia / skr�Bt dokument�Bw</div>
         {history.length === 0 ? (
-          <div style={{ ...S.muted, fontSize: 13 }}>Brak nieruchomoÄąâ€şci do pokazania.</div>
+          <div style={{ ...S.muted, fontSize: 13 }}>Brak nieruchomo� _ci do pokazania.</div>
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
             {history.map((h) => {
@@ -736,15 +736,15 @@ export default function SaleDocumentsChecklist() {
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontWeight: 900 }}>{h.done}/{h.total}</div>
                       <div style={S.mini}>
-                        {h.requiredMissing.length > 0 ? `ĹˇÂ  wymagane braki: ${h.requiredMissing.length}` : "… brak wymaganych brakÄ‚łw"}
+                        {h.requiredMissing.length > 0 ? `9Ǡ wymagane braki: ${h.requiredMissing.length}` : "& brak wymaganych brak�Bw"}
                       </div>
                     </div>
                   </div>
 
                   {open ? (
                     <div style={S.listBox}>
-                      {/* Masz juÄąÄ˝ */}
-                      <div style={{ fontWeight: 900, marginBottom: 8 }}>Masz juÄąÄ˝:</div>
+                      {/* Masz ju��� */}
+                      <div style={{ fontWeight: 900, marginBottom: 8 }}>Masz ju���:</div>
                       {h.have.length === 0 ? (
                         <div style={{ ...S.muted, fontSize: 13 }}>Nic jeszcze nie odhaczone.</div>
                       ) : (
@@ -761,7 +761,7 @@ export default function SaleDocumentsChecklist() {
                       {/* Braki wymagane */}
                       <div style={{ fontWeight: 900, marginTop: 14, marginBottom: 8 }}>Braki wymagane:</div>
                       {h.requiredMissing.length === 0 ? (
-                        <div style={{ fontSize: 13, fontWeight: 900, color: "rgba(234,255,251,0.92)" }}>… Wszystkie wymagane masz.</div>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: "rgba(234,255,251,0.92)" }}>& Wszystkie wymagane masz.</div>
                       ) : (
                         <div style={{ display: "grid", gap: 6 }}>
                           {h.requiredMissing.map((it) => (
@@ -779,7 +779,7 @@ export default function SaleDocumentsChecklist() {
                           style={S.button}
                           onClick={() => setActiveId(h.property.id)}
                         >
-                          PrzejdÄąĹ🏠 do tej nieruchomoÄąâ€şci â€ â€
+                          Przejd�9<� do tej nieruchomo� _ci  � �
                         </button>
                       </div>
                     </div>
@@ -792,7 +792,7 @@ export default function SaleDocumentsChecklist() {
       </div>
 
       <div style={{ marginTop: 14, fontSize: 12, color: "rgba(255,255,255,0.60)" }}>
-        To checklista pomocnicza. Notariusz/bank/kupujć…cy mogć… wymagaćâ€ˇ dodatkowych dokumentÄ‚łw zaleÄąÄ˝nie od sytuacji.
+        To checklista pomocnicza. Notariusz/bank/kupuj&cy mog& wymaga � dodatkowych dokument�Bw zale���nie od sytuacji.
       </div>
     </div>
   );

@@ -311,31 +311,31 @@ try {
         {
           role: "system",
           content: [
-            "Jesteś asystentem CRM + trenerem rozmów dla agenta nieruchomości w Polsce.",
-            "Masz zwracać WYĹć„CZNIE czysty JSON (bez markdown, bez komentarzy).",
+            "Jeste[ asystentem CRM + trenerem rozm�w dla agenta nieruchomo[ci w Polsce.",
+            "Masz zwraca WY9�CZNIE czysty JSON (bez markdown, bez komentarzy).",
             "",
-            "Zwracasz jednocześnie:",
-            "1) actions[] (CRM) — jak dotychczas",
+            "Zwracasz jednocze[nie:",
+            "1) actions[] (CRM)  jak dotychczas",
             "2) COACHING dla rozmowy: speaker, stage, objections[], tips[], nextLine",
             "",
-            "Tryb rozmowy (mode): exclusive (wyłć…czność‡) albo open (otwarta).",
+            "Tryb rozmowy (mode): exclusive (wyB&czno[!) albo open (otwarta).",
             "",
-            "Reguły dat:",
-            "- Jeżeli użytkownik nie poda roku, przyjmij bieżć…cy rok wzglć™dem `nowISO`.",
-            "- Jeżeli data bez roku jest już w przeszłości wzglć™dem `nowISO`, ustaw kolejny rok.",
+            "ReguBy dat:",
+            "- Je|eli u|ytkownik nie poda roku, przyjmij bie|&cy rok wzgl"dem `nowISO`.",
+            "- Je|eli data bez roku jest ju| w przeszBo[ci wzgl"dem `nowISO`, ustaw kolejny rok.",
             "- Formaty: date = YYYY-MM-DD, time = HH:mm.",
             "",
-            "Typy eventów: pozysk | prezentacja | umowa | inne.",
+            "Typy event�w: pozysk | prezentacja | umowa | inne.",
             "Follow-up: followupType: pozysk | prezentacja.",
             "",
-            "Ważne: Nie wymyślaj numerów telefonu/email jeśli ich nie ma.",
-            "Jeśli komenda CRM jest niepełna: actions = [] i hint z krótkć… sugestić….",
+            "Wa|ne: Nie wymy[laj numer�w telefonu/email je[li ich nie ma.",
+            "Je[li komenda CRM jest niepeBna: actions = [] i hint z kr�tk& sugesti&.",
             "",
             "COACHING:",
-            "- speaker: kto mówi w tym fragmencie transkrypcji (client/agent/unknown).",
-            "- stage: raport/needs/value/terms/close/unknown (jeden wybór).",
-            "- objections: max 4. Każda ma: type, evidence (krótki cytat), response (co agent ma powiedzieć‡), question (pytanie domykajć…ce).",
-            "- tips: max 6, krótkie konkretne zdania do użycia teraz.",
+            "- speaker: kto m�wi w tym fragmencie transkrypcji (client/agent/unknown).",
+            "- stage: raport/needs/value/terms/close/unknown (jeden wyb�r).",
+            "- objections: max 4. Ka|da ma: type, evidence (kr�tki cytat), response (co agent ma powiedzie!), question (pytanie domykaj&ce).",
+            "- tips: max 6, kr�tkie konkretne zdania do u|ycia teraz.",
             "- nextLine: jedno najlepsze zdanie do powiedzenia TERAZ (pod tryb mode).",
           ].join("\n"),
         },
@@ -347,7 +347,7 @@ mode: ${mode}
 TRANSKRYPCJA (ostatni fragment):
 ${transcript}
 
-Zwróć JSON o strukturze:
+Zwr� JSON o strukturze:
 {
   "actions": [
     // { "type": "create_lead", "payload": { "name": "...", "phone": "...", "preferences": "..." } }
@@ -370,15 +370,15 @@ Zwróć JSON o strukturze:
   ]
 }
 
-Jeśli z transkrypcji wynika: klient szuka mieszkania + data spotkania, zwróć DWIE akcje:
+Je[li z transkrypcji wynika: klient szuka mieszkania + data spotkania, zwr� DWIE akcje:
 - create_lead
 - create_calendar_event
 
-Jeśli z transkrypcji wynika: "dodaj follow up ...", zwróć create_followup.
-Jeśli z transkrypcji wynika: "wyślij sms/email ...", zwróć draft_sms/draft_email (tylko draft).`,
+Je[li z transkrypcji wynika: "dodaj follow up ...", zwr� create_followup.
+Je[li z transkrypcji wynika: "wy[lij sms/email ...", zwr� draft_sms/draft_email (tylko draft).`,
         },
       ],
-      // trochć™ szybciej / stabilniej w JSON: ucinamy kreatywność‡
+      // troch" szybciej / stabilniej w JSON: ucinamy kreatywno[!
       temperature: 0.2,
     });
 
@@ -390,7 +390,7 @@ Jeśli z transkrypcji wynika: "wyślij sms/email ...", zwróć draft_sms/draft_e
 
     const coach = coerceCoach(parsed);
 
-    /* 3) Legacy (żeby nic nie popsuć‡): lead/meeting */
+    /* 3) Legacy (|eby nic nie popsu!): lead/meeting */
     const leadAction = actions.find((a) => a.type === "create_lead") as
       | { type: "create_lead"; payload: { name: string; phone?: string | null; preferences?: string | null } }
       | undefined;
@@ -424,7 +424,7 @@ Jeśli z transkrypcji wynika: "wyślij sms/email ...", zwróć draft_sms/draft_e
     if (eventAction) {
       legacyMeeting = {
         id: Date.now(),
-        title: eventAction.payload.title || "Spotkanie z głosówki",
+        title: eventAction.payload.title || "Spotkanie z gBos�wki",
         date: eventAction.payload.date,
         time: eventAction.payload.time,
       };
@@ -450,7 +450,7 @@ Jeśli z transkrypcji wynika: "wyślij sms/email ...", zwróć draft_sms/draft_e
     });
   } catch (e: any) {
     console.error(e);
-    const msg = typeof e?.message === "string" ? e.message : "Błąd serwera voice-analyze";
+    const msg = typeof e?.message === "string" ? e.message : "BBd serwera voice-analyze";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

@@ -16,11 +16,11 @@ type CalendarEvent = {
 const STORAGE_KEY = "calendar-events";
 const ZOOM_KEY = "calendar-zoom";
 
-// … szerszy zakres zoom
+// & szerszy zakres zoom
 const ZOOM_MIN = 30;
 const ZOOM_MAX = 160;
 
-const WEEKDAYS_PL = ["Pon", "Wt", "Ĺšr", "Czw", "Pt", "Sob", "Ndz"];
+const WEEKDAYS_PL = ["Pon", "Wt", "9ar", "Czw", "Pt", "Sob", "Ndz"];
 
 const TYPE_META: Record<EventType, { label: string; bg: string; border: string; text: string }> = {
   pozysk: {
@@ -102,7 +102,7 @@ export default function CalendarPage() {
     localStorage.setItem(ZOOM_KEY, String(zoom));
   }, [zoom]);
 
-  // Ctrl/ + scroll = zoom (bez żadnych napisów w UI)
+  // Ctrl/� + scroll = zoom (bez |adnych napis�w w UI)
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
       const withMod = e.ctrlKey || e.metaKey;
@@ -140,7 +140,7 @@ export default function CalendarPage() {
   };
 
   const saveEvent = () => {
-    if (!form.time || !form.title) return alert("Uzupełnij godzinć™ i tytuł.");
+    if (!form.time || !form.title) return alert("UzupeBnij godzin" i tytuB.");
 
     if (editing) {
       saveAll(events.map((e) => (e.id === editing.id ? { ...editing, ...form } : e)));
@@ -158,7 +158,7 @@ export default function CalendarPage() {
   };
 
   const deleteEvent = (id: number) => {
-    if (!confirm("Usunć…ć‡ wydarzenie?")) return;
+    if (!confirm("Usun&! wydarzenie?")) return;
     saveAll(events.filter((e) => e.id !== id));
   };
 
@@ -183,7 +183,7 @@ export default function CalendarPage() {
   const yearDayPadY = Math.max(5, Math.round(8 * zoomScale));
   const yearDayRadius = Math.max(9, Math.round(12 * zoomScale));
 
-  // … auto-scroll to today (only once) — desktop grid
+  // & auto-scroll to today (only once)  desktop grid
   useEffect(() => {
     if (view !== "month") return;
     if (didAutoScrollRef.current) return;
@@ -197,7 +197,7 @@ export default function CalendarPage() {
     return () => window.clearTimeout(t);
   }, [view]);
 
-  // … jasne kafelki + weekend też jasny, tylko cieplejszy
+  // & jasne kafelki + weekend te| jasny, tylko cieplejszy
   const DAY_BG = "rgba(255,255,255,0.96)";
   const DAY_BORDER = "rgba(15,23,42,0.10)";
 
@@ -205,7 +205,7 @@ export default function CalendarPage() {
   const WEEKEND_BORDER = "rgba(245,158,11,0.22)";
   const WEEKEND_TOP_GLOW = "inset 0 1px 0 rgba(245,158,11,0.20)";
 
-  // … Mobile list data (pionowo)
+  // & Mobile list data (pionowo)
   const monthDays = useMemo(() => {
     const out: Array<{
       date: string;
@@ -230,7 +230,7 @@ export default function CalendarPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-8">
-      {/* Mobile-only styling for €śchmurki€ť */}
+      {/* Mobile-only styling for �[chmurki�e */}
       <style>{`
         .ce-daycard {
           border-radius: 18px;
@@ -318,7 +318,7 @@ export default function CalendarPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-main)" }}>
-            “… Kalendarz
+            & Kalendarz
           </h1>
           <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}></p>
         </div>
@@ -339,7 +339,7 @@ export default function CalendarPage() {
             aria-pressed={view === "month"}
             style={view === "month" ? pillActive : pillIdle}
           >
-            Miesić…c
+            Miesi&c
           </button>
           <button
             onClick={() => setView("year")}
@@ -352,9 +352,9 @@ export default function CalendarPage() {
 
         <div className="flex items-center gap-2">
           <button onClick={() => setZoom((z) => clamp(z - 5, ZOOM_MIN, ZOOM_MAX))} title="Oddal" style={roundBtnStyle}>
-            ’
+            �
           </button>
-          <button onClick={() => setZoom((z) => clamp(z + 5, ZOOM_MIN, ZOOM_MAX))} title="Przybliż" style={roundBtnStyle}>
+          <button onClick={() => setZoom((z) => clamp(z + 5, ZOOM_MIN, ZOOM_MAX))} title="Przybli|" style={roundBtnStyle}>
             +
           </button>
           <button onClick={() => setZoom(100)} style={pillIdle} title="Reset zoom do 100%">
@@ -376,7 +376,7 @@ export default function CalendarPage() {
       {/* MONTH */}
       {view === "month" ? (
         <section className="mt-5">
-          {/* … MOBILE ONLY (pionowo) */}
+          {/* & MOBILE ONLY (pionowo) */}
           <div className="md:hidden grid gap-3">
             {monthDays.map((d) => {
               const has = d.items.length > 0;
@@ -413,11 +413,11 @@ export default function CalendarPage() {
                             style={{
                               background: meta.bg,
                               borderColor: meta.border,
-                              color: "rgba(234,255,251,0.95)", // … jasny tekst na mobile
+                              color: "rgba(234,255,251,0.95)", // & jasny tekst na mobile
                             }}
                           >
                             <div className="ce-mini__top">
-                              {e.time} €˘ {meta.label}
+                              {e.time} �� {meta.label}
                             </div>
                             <div className="ce-mini__title">{e.title}</div>
                           </div>
@@ -425,7 +425,7 @@ export default function CalendarPage() {
                       })}
                       {d.items.length > 2 ? (
                         <div className="ce-more" style={{ color: "rgba(234,255,251,0.85)" }}>
-                          +{d.items.length - 2} wić™cej€¦
+                          +{d.items.length - 2} wi"cej��
                         </div>
                       ) : null}
                     </div>
@@ -435,7 +435,7 @@ export default function CalendarPage() {
             })}
           </div>
 
-          {/* … DESKTOP ONLY (siatka) */}
+          {/* & DESKTOP ONLY (siatka) */}
           <div className="hidden md:block">
             {/* weekday header */}
             <div className="grid grid-cols-7 gap-4 mb-4">
@@ -565,7 +565,7 @@ export default function CalendarPage() {
                             fontSize: Math.max(10, Math.round(12 * zoomScale)),
                           }}
                         >
-                          +{dayEvents.length - 3} wić™cej€¦
+                          +{dayEvents.length - 3} wi"cej��
                         </div>
                       ) : null}
                     </div>
@@ -599,7 +599,7 @@ export default function CalendarPage() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-xs font-extrabold uppercase tracking-wide" style={{ color: "rgba(15,23,42,0.60)" }}>
-                      Miesić…c
+                      Miesi&c
                     </div>
                     <div className="mt-1 font-black" style={{ color: "#0f172a", textTransform: "capitalize" }}>
                       {label}
@@ -700,10 +700,10 @@ export default function CalendarPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-xs font-extrabold uppercase tracking-wide" style={{ color: "rgba(15,23,42,0.60)" }}>
-                  Dzień
+                  DzieD
                 </div>
                 <h2 className="mt-1 text-xl font-black" style={{ color: "#0f172a" }}>
-                  “Ś {selectedDate}
+                  Z {selectedDate}
                 </h2>
               </div>
 
@@ -716,7 +716,7 @@ export default function CalendarPage() {
                 }}
                 onClick={() => setSelectedDate(null)}
               >
-                • Zamknij
+                " Zamknij
               </button>
             </div>
 
@@ -739,7 +739,7 @@ export default function CalendarPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="text-sm font-black" style={{ color: "#0f172a" }}>
-                            {e.time} — {e.title}
+                            {e.time}  {e.title}
                           </div>
                           <div className="mt-1 text-xs" style={{ color: "rgba(15,23,42,0.65)" }}>
                             {TYPE_META[e.type].label}
@@ -756,7 +756,7 @@ export default function CalendarPage() {
                             }}
                             onClick={() => editEvent(e)}
                           >
-                            🏠ď¸🏠
+                            <��<�
                           </button>
                           <button
                             className="rounded-xl px-3 py-2 text-xs font-extrabold"
@@ -767,7 +767,7 @@ export default function CalendarPage() {
                             }}
                             onClick={() => deleteEvent(e.id)}
                           >
-                            🗑️
+                            =�
                           </button>
                         </div>
                       </div>
@@ -791,7 +791,7 @@ export default function CalendarPage() {
 
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="label-light">•’ Godzina</label>
+                <label className="label-light">" Godzina</label>
                 <input
                   className="input-light"
                   type="time"
@@ -801,7 +801,7 @@ export default function CalendarPage() {
               </div>
 
               <div>
-                <label className="label-light">Ż Typ</label>
+                <label className="label-light">{ Typ</label>
                 <select
                   className="input-light"
                   value={form.type}
@@ -815,7 +815,7 @@ export default function CalendarPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="label-light">🏠·ď¸🏠 Tytuł</label>
+                <label className="label-light"><��<� TytuB</label>
                 <input
                   className="input-light"
                   placeholder="np. Prezentacja mieszkania"
@@ -825,10 +825,10 @@ export default function CalendarPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="label-light">“ť Notatka</label>
+                <label className="label-light">e Notatka</label>
                 <textarea
                   className="input-light h-28 resize-y"
-                  placeholder="Adres, klient, szczegóły..."
+                  placeholder="Adres, klient, szczeg�By..."
                   value={form.note}
                   onChange={(e) => setForm({ ...form, note: e.target.value })}
                 />
@@ -836,7 +836,7 @@ export default function CalendarPage() {
             </div>
 
             <button className="btn-mint mt-5 w-full" onClick={saveEvent}>
-              {editing ? "’ľ Zapisz zmiany" : "ž• Dodaj spotkanie"}
+              {editing ? "> Zapisz zmiany" : "~" Dodaj spotkanie"}
             </button>
 
             <style jsx>{`
@@ -909,7 +909,7 @@ function EventChip({ e, zoom }: { e: CalendarEvent; zoom: number }) {
       }}
     >
       <div className="font-extrabold" style={{ opacity: 0.88, fontSize: timeSize }}>
-        {e.time} €˘ {meta.label}
+        {e.time} �� {meta.label}
       </div>
       <div className="font-black" style={{ fontSize: titleSize }}>
         {e.title}
