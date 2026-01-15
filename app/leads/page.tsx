@@ -1,4 +1,4 @@
-?"use client";
+"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -37,31 +37,37 @@ export default function LeadsPage() {
 
   /* ===== AUTOCOMPLETE ===== */
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const timeoutRef = useRef<any>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   const fetchSuggestions = async (query: string) => {
-    if (query.length < 3) return setSuggestions([]);
+    if (query.trim().length < 3) return setSuggestions([]);
 
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&countrycodes=pl&q=${encodeURIComponent(
           query
-        )}`
+        )}`,
+        {
+          headers: {
+            // Nominatim lubi jak jest User-Agent / Referer, ale w przeglądarce nie zawsze można.
+            // To i tak działa bez tego w większości przypadków.
+          },
+        }
       );
-      const data = await res.json();
-      setSuggestions(Array.isArray(data) ? data.slice(0, 6) : []);
+      const data: unknown = await res.json();
+      setSuggestions(Array.isArray(data) ? (data as any[]).slice(0, 6) : []);
     } catch {
       setSuggestions([]);
     }
   };
 
   const onPrefChange = (value: string) => {
-    setForm({ ...form, preferences: value });
+    setForm((prev) => ({ ...prev, preferences: value }));
 
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      const last = value.split(" ").slice(-1)[0];
-      fetchSuggestions(last);
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    timeoutRef.current = window.setTimeout(() => {
+      const last = value.trim().split(/\s+/).slice(-1)[0] || "";
+      void fetchSuggestions(last);
     }, 350);
   };
 
@@ -72,13 +78,26 @@ export default function LeadsPage() {
 
   /* ===== LOAD ===== */
   useEffect(() => {
-    setLeads(JSON.parse(localStorage.getItem("leads") || "[]"));
-    setProperties(JSON.parse(localStorage.getItem("properties") || "[]"));
+    try {
+      const rawLeads = localStorage.getItem("leads");
+      const rawProps = localStorage.getItem("properties");
+
+      const parsedLeads: unknown = rawLeads ? JSON.parse(rawLeads) : [];
+      const parsedProps: unknown = rawProps ? JSON.parse(rawProps) : [];
+
+      setLeads(Array.isArray(parsedLeads) ? (parsedLeads as Lead[]) : []);
+      setProperties(Array.isArray(parsedProps) ? (parsedProps as Property[]) : []);
+    } catch {
+      setLeads([]);
+      setProperties([]);
+    }
   }, []);
 
   const saveLeads = (data: Lead[]) => {
     setLeads(data);
-    localStorage.setItem("leads", JSON.stringify(data));
+    try {
+      localStorage.setItem("leads", JSON.stringify(data));
+    } catch {}
   };
 
   /* ===== NORMALIZE ===== */
@@ -87,7 +106,7 @@ export default function LeadsPage() {
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
-      .replace(/(owie|ach|ami|owi|emu|ie|u|a|e|y|ow|�w)$/g, "");
+      .replace(/(owie|ach|ami|owi|emu|ie|u|a|e|y|ow|w)$/g, "");
 
   /* ===== PRICE ===== */
   const extractPriceRange = (text: string) => {
@@ -95,16 +114,17 @@ export default function LeadsPage() {
     let min: number | null = null;
     let max: number | null = null;
 
-    const range = t.match(/(\d{2,3})[-](\d{2,3})tys/);
+    const range = t.match(/(\d{2,3})-(\d{2,3})tys/);
     if (range) {
-      min = +range[1] * 1000;
-      max = +range[2] * 1000;
+      min = Number(range[1]) * 1000;
+      max = Number(range[2]) * 1000;
     }
 
     const maxMatch = t.match(/do(\d{2,3})tys|do(\d)mln/);
     if (maxMatch) {
-      max =
-        Number(maxMatch[1] || maxMatch[2]) * (maxMatch[2] ? 1_000_000 : 1000);
+      const tys = maxMatch[1];
+      const mln = maxMatch[2];
+      max = Number(tys || mln) * (mln ? 1_000_000 : 1000);
     }
 
     return { min, max };
@@ -113,34 +133,38 @@ export default function LeadsPage() {
   /* ===== MATCH ===== */
   const matchScore = (lead: Lead, p: Property) => {
     if (!lead.preferences) return 0;
+
     const prefWords = lead.preferences.split(/\s+/).map(normalize);
     let score = 0;
 
-    if (p.city && prefWords.some((w) => normalize(p.city!).includes(w))) score += 30;
-    if (p.district && prefWords.some((w) => normalize(p.district!).includes(w))) score += 30;
+    if (p.city && prefWords.some((w) => normalize(p.city).includes(w))) score += 30;
+    if (p.district && prefWords.some((w) => normalize(p.district).includes(w))) score += 30;
 
     const rooms = lead.preferences.match(/(\d)\s*pok/);
-    if (rooms && p.rooms === Number(rooms[1])) score += 20;
+    if (rooms && typeof p.rooms === "number" && p.rooms === Number(rooms[1])) score += 20;
 
-    if (lead.preferences.includes("winda") && p.elevator) score += 10;
+    if (lead.preferences.toLowerCase().includes("winda") && p.elevator) score += 10;
 
     const { min, max } = extractPriceRange(lead.preferences);
-    if (p.price && (!min || p.price >= min) && (!max || p.price <= max)) score += 10;
+    if (typeof p.price === "number" && (!min || p.price >= min) && (!max || p.price <= max)) score += 10;
 
     return Math.min(score, 100);
   };
 
   const fallbackMatch = (lead: Lead) => {
     if (!lead.preferences) return [];
+
     const prefWords = lead.preferences.split(/\s+/).map(normalize);
     const { min, max } = extractPriceRange(lead.preferences);
 
     return properties.filter((p) => {
-      const loc = [p.city, p.district, p.street].filter(Boolean).map((v) => normalize(v!));
+      const loc = [p.city, p.district, p.street]
+        .filter(Boolean)
+        .map((v) => normalize(String(v)));
 
       const locationMatch = prefWords.some((w) => loc.some((l) => l.includes(w)));
-
-      const priceMatch = !p.price || ((!min || p.price >= min) && (!max || p.price <= max));
+      const priceMatch =
+        typeof p.price !== "number" || ((!min || p.price >= min) && (!max || p.price <= max));
 
       return locationMatch && priceMatch;
     });
@@ -148,7 +172,7 @@ export default function LeadsPage() {
 
   /* ===== SAVE ===== */
   const saveLead = () => {
-    if (!form.name.trim()) return alert("Podaj imi" i nazwisko");
+    if (!form.name.trim()) return alert('Podaj imię i nazwisko');
 
     const payload: Lead = {
       id: editingId ?? Date.now(),
@@ -167,7 +191,7 @@ export default function LeadsPage() {
   };
 
   const removeLead = (id: number) => {
-    if (!confirm("Usun&! leada?")) return;
+    if (!confirm("Usunąć leada?")) return;
     saveLeads(leads.filter((x) => x.id !== id));
   };
 
@@ -181,7 +205,7 @@ export default function LeadsPage() {
   /* ===== UI ===== */
   return (
     <main className="mx-auto max-w-7xl px-6 py-8">
-      {/* & MOBILE/DESKTOP LIST SWITCH */}
+      {/* MOBILE/DESKTOP LIST SWITCH */}
       <style>{`
         .ce-table-desktop { display: block; }
         .ce-cards-mobile { display: none; }
@@ -205,14 +229,14 @@ export default function LeadsPage() {
               color: "rgba(234,255,251,0.92)",
             }}
           >
-            <span style={{ color: "var(--accent)" }}><�</span> Sprzeda| / Popyt
+            <span style={{ color: "var(--accent)" }}>↗</span> Sprzedaż / Popyt
           </div>
 
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-main)" }}>
-            � Leady
+            🧲 Leady
           </h1>
           <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-            Zbieraj leady i automatycznie podgl&daj dopasowania do ofert.
+            Zbieraj leady i automatycznie podglądaj dopasowania do ofert.
           </p>
         </div>
 
@@ -234,7 +258,7 @@ export default function LeadsPage() {
               {editingId ? "Edytuj leada" : "Dodaj leada"}
             </h2>
             <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-              W preferencjach mo|esz wpisa! np. �[Mokot�w 3 pok do 1 mln winda�e.
+              W preferencjach wpisz np. „Mokotów 3 pok do 1 mln winda”.
             </p>
           </div>
 
@@ -253,24 +277,24 @@ export default function LeadsPage() {
                   setSuggestions([]);
                 }}
               >
-                Anuluj edycj"
+                Anuluj edycję
               </button>
             ) : null}
 
             <button className="btn-primary" onClick={saveLead}>
-              {editingId ? "> Zapisz" : "~" Dodaj"}
+              {editingId ? "✅ Zapisz" : "➕ Dodaj"}
             </button>
           </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="label">imi" i nazwisko</label>
+            <label className="label">Imię i nazwisko</label>
             <input
               className="input"
               placeholder="Jan Kowalski"
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
             />
           </div>
 
@@ -280,7 +304,7 @@ export default function LeadsPage() {
               className="input"
               placeholder="500600700"
               value={form.phone ?? ""}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
             />
           </div>
 
@@ -288,7 +312,7 @@ export default function LeadsPage() {
             <label className="label">Preferencje</label>
             <textarea
               className="input h-28 resize-y"
-              placeholder="np. Mokot�w 3 pokoje do 1 mln winda"
+              placeholder="np. Mokotów 3 pokoje do 1 mln winda"
               value={form.preferences ?? ""}
               onChange={(e) => onPrefChange(e.target.value)}
               onBlur={() => setTimeout(() => setSuggestions([]), 150)}
@@ -319,10 +343,10 @@ export default function LeadsPage() {
                     }}
                   >
                     <div className="font-extrabold" style={{ color: "rgba(234,255,251,0.95)" }}>
-                      d {s.display_name}
+                      📍 {s.display_name}
                     </div>
                     <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                      Kliknij, aby wstawi!
+                      Kliknij, aby wstawić
                     </div>
                   </button>
                 ))}
@@ -355,6 +379,14 @@ export default function LeadsPage() {
             color: var(--text-muted);
             letter-spacing: 0.2px;
           }
+          .btn-primary {
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-weight: 900;
+            background: rgba(45, 212, 191, 0.14);
+            border: 1px solid rgba(45, 212, 191, 0.35);
+            color: rgba(234, 255, 251, 0.95);
+          }
         `}</style>
       </section>
 
@@ -363,23 +395,26 @@ export default function LeadsPage() {
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
             <h2 className="text-xl font-extrabold" style={{ color: "var(--text-main)" }}>
-              Lista lead�w
+              Lista leadów
             </h2>
             <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
-              9�&cznie: {leads.length}
+              Łącznie: {leads.length}
             </p>
           </div>
         </div>
 
         {leads.length === 0 ? (
-          <div className="mt-4 rounded-2xl p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border-soft)" }}>
+          <div
+            className="mt-4 rounded-2xl p-6"
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border-soft)" }}
+          >
             <div className="text-sm" style={{ color: "var(--text-muted)" }}>
-              Brak lead�w. Dodaj pierwszego powy|ej  
+              Brak leadów. Dodaj pierwszego powyżej.
             </div>
           </div>
         ) : (
           <>
-            {/* & MOBILE: cards (fit phone screen) */}
+            {/* MOBILE: cards */}
             <div className="ce-cards-mobile mt-4" style={{ display: "grid", gap: 12 }}>
               {leads.map((l) => {
                 const matches = fallbackMatch(l);
@@ -446,7 +481,7 @@ export default function LeadsPage() {
                             >
                               <div className="flex items-center justify-between gap-3">
                                 <div className="text-sm font-extrabold" style={{ color: "rgba(234,255,251,0.95)" }}>
-                                  <� {p.district || p.city || ""}
+                                  🏙️ {p.district || p.city || ""}
                                 </div>
                                 <span
                                   className="rounded-full px-2 py-1 text-xs font-black"
@@ -460,16 +495,16 @@ export default function LeadsPage() {
                                 </span>
                               </div>
                               <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                                {p.price ? `${p.price.toLocaleString("pl-PL")} zB` : ""}
-                                {typeof p.rooms === "number" ? ` �� ${p.rooms} pok.` : ""}
-                                {p.elevator ? " �� winda" : ""}
+                                {typeof p.price === "number" ? `${p.price.toLocaleString("pl-PL")} zł` : ""}
+                                {typeof p.rooms === "number" ? ` • ${p.rooms} pok.` : ""}
+                                {p.elevator ? " • winda" : ""}
                               </div>
                             </div>
                           ))}
 
                           {matches.length > 3 ? (
                             <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-                              +{matches.length - 3} wi"cej dopasowaD��
+                              +{matches.length - 3} więcej dopasowań
                             </div>
                           ) : null}
                         </div>
@@ -495,7 +530,7 @@ export default function LeadsPage() {
                           window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
                       >
-                        <��<� Edytuj
+                        ✏️ Edytuj
                       </button>
 
                       <button
@@ -506,8 +541,9 @@ export default function LeadsPage() {
                           color: "rgba(255,220,220,0.95)",
                         }}
                         onClick={() => removeLead(l.id)}
+                        title="Usuń"
                       >
-                        
+                        🗑️
                       </button>
                     </div>
                   </div>
@@ -515,7 +551,7 @@ export default function LeadsPage() {
               })}
             </div>
 
-            {/* & DESKTOP: original table */}
+            {/* DESKTOP: table */}
             <div className="ce-table-desktop mt-4 surface-light overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
@@ -566,7 +602,7 @@ export default function LeadsPage() {
                                 >
                                   <div className="flex items-center justify-between gap-3">
                                     <div className="text-sm font-extrabold" style={{ color: "#0f172a" }}>
-                                      <� {p.district || p.city || ""}
+                                      🏙️ {p.district || p.city || ""}
                                     </div>
 
                                     <span
@@ -582,16 +618,16 @@ export default function LeadsPage() {
                                   </div>
 
                                   <div className="mt-1 text-xs" style={{ color: "rgba(15,23,42,0.70)" }}>
-                                    {p.price ? `${p.price.toLocaleString("pl-PL")} zB` : ""}
-                                    {typeof p.rooms === "number" ? ` �� ${p.rooms} pok.` : ""}
-                                    {p.elevator ? " �� winda" : ""}
+                                    {typeof p.price === "number" ? `${p.price.toLocaleString("pl-PL")} zł` : ""}
+                                    {typeof p.rooms === "number" ? ` • ${p.rooms} pok.` : ""}
+                                    {p.elevator ? " • winda" : ""}
                                   </div>
                                 </div>
                               ))}
 
                               {matches.length > 5 ? (
                                 <div className="text-xs" style={{ color: "rgba(15,23,42,0.60)" }}>
-                                  +{matches.length - 5} wi"cej dopasowaD��
+                                  +{matches.length - 5} więcej dopasowań
                                 </div>
                               ) : null}
                             </div>
@@ -617,7 +653,7 @@ export default function LeadsPage() {
                                 window.scrollTo({ top: 0, behavior: "smooth" });
                               }}
                             >
-                              <��<� Edytuj
+                              ✏️ Edytuj
                             </button>
 
                             <button
@@ -629,7 +665,7 @@ export default function LeadsPage() {
                               }}
                               onClick={() => removeLead(l.id)}
                             >
-                               UsuD
+                              Usuń
                             </button>
                           </div>
                         </Td>
@@ -709,9 +745,5 @@ function Td({
   children: React.ReactNode;
   alignRight?: boolean;
 }) {
-  return (
-    <td className={`px-5 py-4 ${alignRight ? "text-right" : ""}`}>
-      {children}
-    </td>
-  );
+  return <td className={`px-5 py-4 ${alignRight ? "text-right" : ""}`}>{children}</td>;
 }

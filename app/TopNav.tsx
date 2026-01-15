@@ -113,6 +113,7 @@ export default function TopNav() {
                 <NavLink href="/properties">🏠 Nieruchomości</NavLink>
                 <NavLink href="/calendar">📅 Kalendarz</NavLink>
                 <NavLink href="/followups">🔔 Follow-up</NavLink>
+                <NavLink href="/settings/social-media">📱 Social media</NavLink>
                 <NavLink href="/assistant/live">🎧 AI Coach</NavLink>
                 <NavLink href="/voice-notes">🎙️ Głosówki</NavLink>
                 <NavLink href="/documents/sale">📄 Dokumenty</NavLink>

@@ -1,12 +1,15 @@
-?import * as React from "react";
+import * as React from "react";
 import { CalyxMark } from "./CalyxMark";
 
 type AppBrandProps = {
   className?: string;
-  badgeText?: string; // np. "Navy €˘ Mint"
+  badgeText?: string; // np. "Navy Mint"
 };
 
-export function AppBrand({ className, badgeText = "Navy €˘ Mint" }: AppBrandProps) {
+export function AppBrand({
+  className,
+  badgeText = "Navy Mint",
+}: AppBrandProps) {
   return (
     <div className={`flex items-center gap-2.5 ${className ?? ""}`}>
       {/* Icon container (subtle like your UI) */}

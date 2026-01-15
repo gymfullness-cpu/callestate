@@ -1,18 +1,19 @@
-?import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
-
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function json(data: any, status = 200) {
+  return NextResponse.json(data, { status });
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const orgId = searchParams.get("orgId");
+    const orgId = (searchParams.get("orgId") || "").trim();
 
-    if (!orgId) {
-      return NextResponse.json({ error: "Podaj orgId" }, { status: 400 });
-    }
+    if (!orgId) return json({ error: "Podaj orgId" }, 400);
 
     const members = await prisma.orgMember.findMany({
       where: { orgId },
@@ -20,74 +21,48 @@ export async function GET(req: Request) {
       take: 200,
     });
 
-    return NextResponse.json({ members });
+    return json({ members });
   } catch (e: any) {
-    return NextResponse.json(
-      { error: "GET members failed", detail: e?.message ?? String(e) },
-      { status: 500 }
-    );
+    return json({ error: "GET members failed", detail: e?.message ?? String(e) }, 500);
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body: any = await req.json().catch(() => ({}));
 
-    if (!body?.orgId || !body?.email) {
-      return NextResponse.json(
-        { error: "Wymagane: orgId, email" },
-        { status: 400 }
-      );
-    }
+    const orgId = String(body?.orgId || "").trim();
+    const email = String(body?.email || "").trim().toLowerCase();
+    const name = String(body?.name || "").trim();
+    const role = String(body?.role || "AGENT").trim();
 
-    if (!body?.name) {
-      return NextResponse.json(
-        { error: "Wymagane: name (imię™ i nazwisko)" },
-        { status: 400 }
-      );
-    }
+    if (!orgId || !email) return json({ error: "Wymagane: orgId, email" }, 400);
+    if (!name) return json({ error: "Wymagane: name (imię i nazwisko)" }, 400);
 
-   const orgId = String(body.orgId);
-const email = String(body.email).trim().toLowerCase();
-const role = body.role ?? "AGENT";
+    const org = await prisma.organization.findUnique({ where: { id: orgId } });
+    if (!org) return json({ error: "Nieprawidłowy orgId (biuro nie istnieje)" }, 400);
 
-const org = await prisma.organization.findUnique({ where: { id: orgId } });
-if (!org) {
-  return NextResponse.json(
-    { error: "Nieprawidłowy orgId (biuro nie istnieje)" },
-    { status: 400 }
-  );
-}
-
-
-    // … blokada na duplikaty email w obrć™bie org
     const existing = await prisma.orgMember.findFirst({
       where: { orgId, email },
     });
 
     if (existing) {
-      return NextResponse.json(
-        { error: "Taki email już istnieje w tym biurze", existing },
-        { status: 409 }
-      );
+      return json({ error: "Taki email już istnieje w tym biurze", existing }, 409);
     }
 
     const member = await prisma.orgMember.create({
       data: {
         orgId,
         email,
-        name: String(body.name),
-        phone: body.phone ? String(body.phone) : null,
-        rank: body.rank ? String(body.rank) : null,
+        name,
+        phone: body?.phone ? String(body.phone).trim() : null,
+        rank: body?.rank ? String(body.rank).trim() : null,
         role,
       },
     });
 
-    return NextResponse.json({ member }, { status: 201 });
+    return json({ member }, 201);
   } catch (e: any) {
-    return NextResponse.json(
-      { error: "POST members failed", detail: e?.message ?? String(e) },
-      { status: 500 }
-    );
+    return json({ error: "POST members failed", detail: e?.message ?? String(e) }, 500);
   }
 }

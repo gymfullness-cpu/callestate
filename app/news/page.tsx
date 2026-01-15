@@ -1,4 +1,4 @@
-?"use client";
+"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -29,20 +29,20 @@ type Top3 = {
 
 const CITY_PRESETS = [
   "Warszawa",
-  "Krak�Bw",
-  "Wroc� aaw",
-  "Pozna�",
-  "Gda�sk",
+  "Kraków",
+  "Wrocław",
+  "Poznań",
+  "Gdańsk",
   "Gdynia",
   "Sopot",
-  "���Bd�9z",
+  "Łódź",
   "Katowice",
   "Szczecin",
   "Lublin",
-  "Bia� aystok",
+  "Białystok",
 ] as const;
 
-/** & Cache TTL (ile minut trzymamy newsy, |eby start by� a natychmiastowy) */
+/** Cache TTL (ile minut trzymamy newsy, żeby start był natychmiastowy) */
 const NEWS_CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
 const cacheKey = (city: string) => `news_feed_cache_v1:${(city || "").trim().toLowerCase()}`;
 
@@ -100,12 +100,12 @@ export default function NewsPage() {
   const [appliedCity, setAppliedCity] = useState("");
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
 
-  // requestId/abort: ignorujemy sp�B�9znione odpowiedzi i ucinamy stare requesty
+  // requestId/abort: ignorujemy spóźnione odpowiedzi i ucinamy stare requesty
   const reqIdRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const didInitRef = useRef(false);
 
-  // trzymamy ostatnie dane |eby nie migota� ao
+  // trzymamy ostatnie dane żeby nie migotało
   const itemsRef = useRef<NewsItem[]>([]);
   const top3Ref = useRef<Top3[]>([]);
   const ratesRef = useRef<Rates | null>(null);
@@ -120,18 +120,18 @@ export default function NewsPage() {
     ratesRef.current = rates;
   }, [rates]);
 
-  /** & 1) natychmiast ustaw stan z cache (je� _li jest) */
+  /** 1) natychmiast ustaw stan z cache (jeśli jest) */
   const hydrateFromCache = useCallback((cityParam: string) => {
     const cached = safeReadCache(cityParam);
     if (!cached) return false;
 
-    // nawet je� _li stary �� nadal mo���e przyspieszy � ��[pierwsz& ramk��
+    // nawet jeśli stary — nadal może przyspieszyć „pierwszą ramkę”
     setItems((prev) => (prev.length ? prev : cached.items || []));
     setTop3((prev) => (prev.length ? prev : cached.top3 || []));
     setRates((prev) => (prev ? prev : cached.rates ?? null));
     setGeneratedAt((prev) => prev ?? cached.generatedAt ?? null);
 
-    // je� _li cache � _wie���y, od razu zdejmij loading
+    // jeśli cache ma cokolwiek, od razu zdejmij loading
     if (cached.items?.length || cached.top3?.length || cached.rates) {
       setLoading(false);
     }
@@ -139,7 +139,7 @@ export default function NewsPage() {
     return true;
   }, []);
 
-  /** & 2) fetch w tle / normalny */
+  /** 2) fetch w tle / normalny */
   const fetchFeed = useCallback(
     async (cityParam: string, opts?: { force?: boolean }) => {
       const myReqId = ++reqIdRef.current;
@@ -151,11 +151,8 @@ export default function NewsPage() {
       abortRef.current = new AbortController();
 
       const hasData =
-        (itemsRef.current?.length || 0) > 0 ||
-        (top3Ref.current?.length || 0) > 0 ||
-        !!ratesRef.current;
+        (itemsRef.current?.length || 0) > 0 || (top3Ref.current?.length || 0) > 0 || !!ratesRef.current;
 
-      // je� _li ju��� co� _ mamy �� nie chowaj UI
       if (!hasData) setLoading(true);
       else setRefreshing(true);
 
@@ -165,9 +162,8 @@ export default function NewsPage() {
         const c = cityParam.trim();
         const cached = safeReadCache(c);
 
-        // & je� _li cache � _wie���y i nie wymuszamy, to nie m��cz API (szybciej + mniej request�Bw)
+        // jeśli cache świeży i nie wymuszamy — nie męcz API
         if (!opts?.force && cached && isFresh(cached.cachedAt)) {
-          // wci&��� zdejmij loading/refreshing
           setLoading(false);
           setRefreshing(false);
           return;
@@ -175,8 +171,6 @@ export default function NewsPage() {
 
         const qs = c ? `?city=${encodeURIComponent(c)}` : "";
         const res = await fetch(`/api/news-feed${qs}`, {
-          // zostawiamy no-store, bo to API pewnie generuje na � _wie���o,
-          // ale UI ju��� jest szybkie dzi��ki localStorage cache.
           cache: "no-store",
           signal: abortRef.current.signal,
         });
@@ -184,12 +178,12 @@ export default function NewsPage() {
         const data = await res.json();
 
         if (myReqId !== reqIdRef.current) return;
-        if (!res.ok || !data?.ok) throw new Error(data?.error || "B� a&d pobierania news�Bw");
+        if (!res.ok || !data?.ok) throw new Error(data?.error || "Błąd pobierania newsów");
 
         const nextItems = Array.isArray(data.items) ? (data.items as NewsItem[]) : null;
         const nextTop3 = Array.isArray(data.top3) ? (data.top3 as Top3[]) : null;
 
-        // nie nadpisuj pustk&
+        // nie nadpisuj pustką
         const finalItems = nextItems && nextItems.length > 0 ? nextItems : itemsRef.current;
         const finalTop3 = nextTop3 && nextTop3.length > 0 ? nextTop3 : top3Ref.current;
         const finalRates = data.rates ? (data.rates as Rates) : ratesRef.current;
@@ -200,7 +194,7 @@ export default function NewsPage() {
         setRates(finalRates);
         setGeneratedAt(finalGeneratedAt);
 
-        // & zapisz do cache (|eby nast��pny start by� a natychmiastowy)
+        // zapisz do cache
         safeWriteCache(c, {
           items: finalItems || [],
           top3: finalTop3 || [],
@@ -210,8 +204,7 @@ export default function NewsPage() {
       } catch (e: any) {
         if (e?.name === "AbortError") return;
         if (myReqId !== reqIdRef.current) return;
-
-        setErr(e?.message || "Nieznany b� a&d");
+        setErr(e?.message || "Nieznany błąd");
       } finally {
         if (myReqId === reqIdRef.current) {
           setLoading(false);
@@ -223,19 +216,19 @@ export default function NewsPage() {
   );
 
   useEffect(() => {
-    // dev StrictMode odpala 2x �� blokujemy
+    // dev StrictMode odpala 2x — blokujemy
     if (didInitRef.current) return;
     didInitRef.current = true;
 
-    // & NATYCHMIAST: poka| cache (je� _li jest)
+    // NATYCHMIAST: pokaż cache (jeśli jest)
     hydrateFromCache("");
 
-    // & W TLE: doci&gnij � _wie���e
-    // requestIdleCallback je� _li jest, |eby nie blokowa � UI na mobile
+    // W TLE: dociągnij świeże
     const run = () => fetchFeed("", { force: false });
 
-    if (typeof (window as any).requestIdleCallback === "function") {
-      (window as any).requestIdleCallback(run, { timeout: 1200 });
+    const ric = (window as any).requestIdleCallback as undefined | ((cb: () => void, opts?: any) => void);
+    if (typeof ric === "function") {
+      ric(run, { timeout: 1200 });
     } else {
       setTimeout(run, 150);
     }
@@ -253,11 +246,11 @@ export default function NewsPage() {
   }, [items, tab]);
 
   const updatedLabel = useMemo(() => {
-    if (!generatedAt) return "��";
+    if (!generatedAt) return "—";
     try {
       return new Date(generatedAt).toLocaleString("pl-PL");
     } catch {
-      return "��";
+      return "—";
     }
   }, [generatedAt]);
 
@@ -267,7 +260,7 @@ export default function NewsPage() {
     const r = rates?.reference?.value;
     const d = rates?.reference?.date;
     if (r) return `Stopa referencyjna NBP: ${r}% ${d ? `(od ${d})` : ""}.`;
-    return "Nie uda� ao si�� pobra � stawek NBP (tymczasowo).";
+    return "Nie udało się pobrać stawek NBP (tymczasowo).";
   }, [rates]);
 
   const S = {
@@ -351,10 +344,7 @@ export default function NewsPage() {
   };
 
   return (
-    <main
-      className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8"
-      style={{ color: "var(--text-main)", overflowX: "hidden" }}
-    >
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8" style={{ color: "var(--text-main)", overflowX: "hidden" }}>
       <style>{`
         .ce-no-x { overflow-x: hidden; }
         .ce-tabs {
@@ -395,21 +385,20 @@ export default function NewsPage() {
         }
       `}</style>
 
-      {/* HEADER */}
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between ce-no-x">
         <div style={{ minWidth: 0 }}>
           <h1 style={S.pageTitle} className="ce-break">
-            �9>�<�9 Pras�wka: nieruchomo� _ci (PL)
+            Prasówka: nieruchomości (PL)
           </h1>
           <p className="mt-2 text-sm ce-break" style={S.muted}>
-            Nag� a�Bwki z internetu + szybkie ��[co to znaczy dla agenta. Linki + opis + przewijany feed.
+            Nagłówki z internetu + szybkie „co to znaczy dla agenta”. Linki + opis + przewijany feed.
           </p>
           <div className="mt-2 text-xs ce-break" style={S.muted}>
             Ostatnia aktualizacja: <b style={{ color: "rgba(234,255,251,0.95)" }}>{updatedLabel}</b>
             {appliedCity ? (
               <>
                 {" "}
-                ��˘ Miasto: <b style={{ color: "rgba(234,255,251,0.95)" }}>{appliedCity}</b>
+                • Miasto: <b style={{ color: "rgba(234,255,251,0.95)" }}>{appliedCity}</b>
               </>
             ) : null}
           </div>
@@ -420,9 +409,9 @@ export default function NewsPage() {
             style={S.btn}
             onClick={() => fetchFeed(appliedCity, { force: true })}
             disabled={loading || refreshing}
-            title="Wymusza pobranie z API (nie u���ywa � _wie���ego cache)."
+            title="Wymusza pobranie z API (nie używa świeżego cache)."
           >
-             Od� _wie��� teraz
+            Odśwież teraz
           </button>
 
           <div
@@ -433,18 +422,17 @@ export default function NewsPage() {
               color: "rgba(234,255,251,0.92)",
             }}
           >
-            {loading ? "B ��aduj�����" : refreshing ? " Od� _wie���am���" : `News�Bw: ${filtered.length}`}
+            {loading ? "Ładuję…" : refreshing ? "Odświeżam…" : `Newsów: ${filtered.length}`}
           </div>
         </div>
       </div>
 
-      {/* TOP 3 */}
       <div className="mt-6" style={S.card}>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between" style={{ minWidth: 0 }}>
           <div style={{ minWidth: 0 }}>
-            <div className="text-sm font-extrabold">9��! Top 3 dzi� _ ��=�  w 20 sekund</div>
+            <div className="text-sm font-extrabold">Top 3 dnia w 20 sekund</div>
             <div className="mt-1 text-sm ce-break" style={S.muted}>
-              Najwa���niejsze rzeczy do rozm�Bw z klientami (AI wybiera i t� aumaczy sens).
+              Najważniejsze rzeczy do rozmów z klientami (AI wybiera i tłumaczy sens).
             </div>
           </div>
 
@@ -453,7 +441,7 @@ export default function NewsPage() {
               <input
                 list="cityPresets"
                 style={S.input}
-                placeholder="=� 9� Twoje miasto (np. Warszawa)"
+                placeholder="Twoje miasto (np. Warszawa)"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
               />
@@ -470,15 +458,12 @@ export default function NewsPage() {
                 const c = city.trim();
                 setAppliedCity(c);
 
-                // & natychmiast poka| cache dla tego miasta (je� _li jest)
                 hydrateFromCache(c);
-
-                // & w tle pobierz � _wie���e (nie force ��=�  TTL zadzia� aa)
                 fetchFeed(c, { force: false });
               }}
               disabled={loading || refreshing}
             >
-              & Zastosuj
+              Zastosuj
             </button>
 
             {appliedCity ? (
@@ -493,7 +478,7 @@ export default function NewsPage() {
                 }}
                 disabled={loading || refreshing}
               >
-                � Wyczy� _ �
+                Wyczyść
               </button>
             ) : null}
           </div>
@@ -501,11 +486,11 @@ export default function NewsPage() {
 
         {loading && top3.length === 0 ? (
           <div className="mt-4 text-sm" style={S.muted}>
-            B Uk� aadam Top 3���
+            Układam Top 3…
           </div>
         ) : err && top3.length === 0 ? (
           <div className="mt-4 text-sm" style={{ color: "rgba(255,220,220,0.95)" }}>
-            9Ǡ {err}
+            {err}
           </div>
         ) : top3.length === 0 ? (
           <div className="mt-4 text-sm" style={S.muted}>
@@ -515,7 +500,7 @@ export default function NewsPage() {
           <>
             {refreshing ? (
               <div className="mt-4 text-xs font-extrabold" style={{ color: "rgba(234,255,251,0.92)" }}>
-                 Od� _wie���am w tle���
+                Odświeżam w tle…
               </div>
             ) : null}
 
@@ -535,25 +520,19 @@ export default function NewsPage() {
                   }}
                 >
                   <div style={S.badge}>
-                    #{idx + 1} ��˘ {t.category}
+                    #{idx + 1} • {t.category}
                   </div>
 
-                  <div
-                    className="mt-3 text-base font-extrabold ce-top3-title"
-                    style={{ color: "var(--text-main)", lineHeight: 1.25 }}
-                  >
+                  <div className="mt-3 text-base font-extrabold ce-top3-title" style={{ color: "var(--text-main)", lineHeight: 1.25 }}>
                     {t.title}
                   </div>
 
-                  <div
-                    className="mt-3 text-sm ce-top3-why"
-                    style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.5 }}
-                  >
+                  <div className="mt-3 text-sm ce-top3-why" style={{ color: "rgba(255,255,255,0.78)", lineHeight: 1.5 }}>
                     {t.why}
                   </div>
 
                   <div className="mt-3 text-xs font-extrabold" style={{ color: "rgba(234,255,251,0.92)" }}>
-                    Otw�rz �9zr�Bd� ao  �
+                    Otwórz źródło →
                   </div>
                 </a>
               ))}
@@ -562,12 +541,11 @@ export default function NewsPage() {
         )}
       </div>
 
-      {/* KREDYTY + FEED */}
       <div className="mt-4 ce-main-grid">
         <div style={S.card}>
-          <div className="text-sm font-extrabold">9� Kredyty / stopy</div>
+          <div className="text-sm font-extrabold">Kredyty / stopy</div>
           <p className="mt-2 text-sm ce-break" style={S.muted}>
-            Kontekst ��[co si�� dzieje z finansowaniem (kluczowe w rozmowach z klientami).
+            Kontekst „co się dzieje z finansowaniem” (kluczowe w rozmowach z klientami).
           </p>
 
           <div
@@ -590,28 +568,22 @@ export default function NewsPage() {
               </div>
             ) : (
               <div className="mt-3 text-sm ce-break" style={{ color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>
-                Brak stawek do wy� _wietlenia. Kliknij <b>Od� _wie��� teraz</b> albo spr�Bbuj ponownie za chwil��.
+                Brak stawek do wyświetlenia. Kliknij <b>Odśwież teraz</b> albo spróbuj ponownie za chwilę.
               </div>
             )}
           </div>
         </div>
 
         <div style={S.card}>
-          <div className="text-sm font-extrabold">�� Feed news�Bw (przewijany)</div>
+          <div className="text-sm font-extrabold">Feed newsów (przewijany)</div>
           <p className="mt-2 text-sm ce-break" style={S.muted}>
-            Klikasz nag� a�Bwek  � otwiera �9zr�Bd� ao. W � _rodku masz sens i ��[dlaczego wa���ne.
+            Klikasz nagłówek → otwiera źródło. W środku masz sens i „dlaczego ważne”.
           </p>
 
           <div className="mt-4 ce-tabs">
             {(["Wszystko", "Kredyty", "Rynek", "Prawo"] as const).map((t) => (
               <div key={t} style={S.pill(tab === t)} onClick={() => setTab(t)}>
-                {t === "Wszystko"
-                  ? "��> Wszystko"
-                  : t === "Kredyty"
-                  ? "B Kredyty"
-                  : t === "Rynek"
-                  ? "9��<�9 Rynek"
-                  : "9���<�9 Prawo"}
+                {t}
               </div>
             ))}
           </div>
@@ -620,15 +592,15 @@ export default function NewsPage() {
             <div style={S.feedInner}>
               {loading && filtered.length === 0 ? (
                 <div className="p-5 text-sm" style={S.muted}>
-                  B Pobieram nag� a�Bwki���
+                  Pobieram nagłówki…
                 </div>
               ) : err && filtered.length === 0 ? (
                 <div className="p-5 text-sm" style={{ color: "rgba(255,220,220,0.95)" }}>
-                  9Ǡ {err}
+                  {err}
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="p-5 text-sm" style={S.muted}>
-                  Brak news�Bw w tej kategorii.
+                  Brak newsów w tej kategorii.
                 </div>
               ) : (
                 <>
@@ -641,7 +613,7 @@ export default function NewsPage() {
                         background: "rgba(45,212,191,0.06)",
                       }}
                     >
-                       Od� _wie���am w tle��� (lista nie znika)
+                      Odświeżam w tle… (lista nie znika)
                     </div>
                   ) : null}
 
@@ -671,16 +643,22 @@ function RateRow({ label, v, d }: { label: string; v?: string; d?: string }) {
       <div className="text-xs font-extrabold" style={{ color: "rgba(255,255,255,0.72)" }}>
         {label}
       </div>
-      <div className="text-sm font-black ce-break" style={{ color: "var(--text-main)", textAlign: "right" }}>
-        {v ? `${v}%` : "��"}
-        <span style={{ marginLeft: 8, fontSize: 11, opacity: 0.7 }}>{d || ""}</span>
+      <div style={{ textAlign: "right" }}>
+        <div className="text-sm font-black" style={{ color: "var(--text-main)" }}>
+          {v ? `${v}%` : "—"}
+        </div>
+        {d ? (
+          <div className="text-[11px]" style={{ color: "rgba(255,255,255,0.62)" }}>
+            {d}
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
 function NewsRow({ n, showDivider }: { n: NewsItem; showDivider: boolean }) {
-  const time = n.publishedAt ? new Date(n.publishedAt).toLocaleString("pl-PL") : "��";
+  const time = n.publishedAt ? new Date(n.publishedAt).toLocaleString("pl-PL") : "—";
 
   return (
     <a
@@ -707,8 +685,8 @@ function NewsRow({ n, showDivider }: { n: NewsItem; showDivider: boolean }) {
             {n.category}
           </span>
 
-          <span className="text-xs ce-break" style={{ color: "var(--text-muted)" }}>
-            {n.source ? `${n.source} ��˘ ` : ""}
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+            {n.source ? `${n.source} • ` : ""}
             {time}
           </span>
         </div>
@@ -729,7 +707,7 @@ function NewsRow({ n, showDivider }: { n: NewsItem; showDivider: boolean }) {
             color: "rgba(234,255,251,0.92)",
           }}
         >
-          �! Dlaczego to wa���ne: <span style={{ color: "rgba(255,255,255,0.86)" }}>{n.whyItMatters}</span>
+          Dlaczego to ważne: <span style={{ color: "rgba(255,255,255,0.86)" }}>{n.whyItMatters}</span>
         </div>
       </div>
     </a>

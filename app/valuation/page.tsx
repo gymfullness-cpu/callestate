@@ -1,4 +1,4 @@
-?"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 
@@ -34,7 +34,7 @@ export default function ValuationPage() {
 
     try {
       if (!url.trim()) throw new Error("Wklej link do ogłoszenia.");
-      if (!url.startsWith("http")) throw new Error("Link musi zaczynać‡ się od http/https.");
+      if (!url.startsWith("http")) throw new Error("Link musi zaczynać się od http/https.");
 
       const res = await fetch("/api/valuation", {
         method: "POST",
@@ -42,29 +42,29 @@ export default function ValuationPage() {
         body: JSON.stringify({ url, portal }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Błąd analizy.");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as any)?.error || "Błąd analizy.");
 
-      setAnalysis(data.analysis);
+      setAnalysis((data as any).analysis);
     } catch (e: any) {
       setError(e?.message || "Nieznany błąd.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const s10 = score10(analysis?.score);
 
   return (
     <main style={{ padding: 40, maxWidth: 900, margin: "0 auto", color: "var(--text-main)" }}>
-      <h1 style={{ fontSize: 28, fontWeight: 900 }}>§  Wycena + analiza AI nieruchomości</h1>
+      <h1 style={{ fontSize: 28, fontWeight: 900 }}> Wycena + analiza AI nieruchomości</h1>
 
       <div style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)" }}>
         Wykryty portal: <b style={{ color: "var(--text-main)" }}>{portal}</b>
       </div>
 
       <input
-        placeholder="”— Link do ogłoszenia (Otodom / Gratka / Morizon)"
+        placeholder="Link do ogłoszenia (Otodom / Gratka / Morizon)"
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         style={{
@@ -105,7 +105,7 @@ export default function ValuationPage() {
         Pokaż surowe dane (debug)
       </label>
 
-      {loading && <p style={{ marginTop: 12 }}>ł Analiza AI...</p>}
+      {loading && <p style={{ marginTop: 12 }}>Analiza AI...</p>}
       {error && <p style={{ marginTop: 12, color: "rgba(239,68,68,0.95)" }}>{error}</p>}
 
       {analysis && (
@@ -119,29 +119,39 @@ export default function ValuationPage() {
             color: "var(--text-main)",
           }}
         >
-          <h3 style={{ fontSize: 18, fontWeight: 900 }}>“Š Wynik analizy</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 900 }}>Wynik analizy</h3>
 
-          <p><b>Score:</b> {s10 !== null ? `${s10}/10` : "—"}</p>
+          <p>
+            <b>Score:</b> {s10 !== null ? `${s10}/10` : "—"}
+          </p>
 
           <p>
             <b>Wyświetlenia:</b>{" "}
-            {typeof analysis?.views === "number"
-              ? analysis.views.toLocaleString("pl-PL")
-              : "—"}
+            {typeof analysis?.views === "number" ? analysis.views.toLocaleString("pl-PL") : "—"}
           </p>
 
           {analysis?.marketAssessment && (
-            <p><b>Ocena rynku:</b> {analysis.marketAssessment}</p>
+            <p>
+              <b>Ocena rynku:</b> {analysis.marketAssessment}
+            </p>
           )}
 
           {analysis?.recommendation && <p>{analysis.recommendation}</p>}
 
           <hr style={{ borderColor: "var(--border-soft)", margin: "16px 0" }} />
 
-          <p><b>Tytuł:</b> {analysis?.title || "—"}</p>
-          <p><b>Cena:</b> {analysis?.price ? `${analysis.price} zł` : "—"}</p>
-          <p><b>Metraż:</b> {analysis?.area ? `${analysis.area} m˛` : "—"}</p>
-          <p><b>Cena / m˛:</b> {analysis?.pricePerM2 ? `${analysis.pricePerM2} zł` : "—"}</p>
+          <p>
+            <b>Tytuł:</b> {analysis?.title || "—"}
+          </p>
+          <p>
+            <b>Cena:</b> {analysis?.price ? `${analysis.price} zł` : "—"}
+          </p>
+          <p>
+            <b>Metraż:</b> {analysis?.area ? `${analysis.area} m²` : "—"}
+          </p>
+          <p>
+            <b>Cena / m²:</b> {analysis?.pricePerM2 ? `${analysis.pricePerM2} zł` : "—"}
+          </p>
 
           <p>
             <b>Lokalizacja:</b> {analysis?.city || "—"}
@@ -152,10 +162,10 @@ export default function ValuationPage() {
           {analysis?.description && (
             <>
               <hr style={{ borderColor: "var(--border-soft)", margin: "16px 0" }} />
-              <p><b>Opis:</b></p>
-              <p style={{ lineHeight: 1.6, color: "var(--text-muted)" }}>
-                {analysis.description}
+              <p>
+                <b>Opis:</b>
               </p>
+              <p style={{ lineHeight: 1.6, color: "var(--text-muted)" }}>{analysis.description}</p>
             </>
           )}
 

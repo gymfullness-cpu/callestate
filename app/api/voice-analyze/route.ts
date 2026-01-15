@@ -1,12 +1,18 @@
-?export const runtime = "nodejs";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { matchProperties } from "@/app/lib/matching";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+/* =========================
+   OPENAI (lazy init)
+========================= */
+function getOpenAI() {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key) return null;
+  return new OpenAI({ apiKey: key });
+}
 
 /* =========================
    TYPES
@@ -63,20 +69,13 @@ type AssistantAction =
       };
     }
   | { type: "create_contact"; payload: { name: string; phone?: string | null; email?: string | null } }
-  | {
-      type: "draft_sms";
-      payload: { toName?: string | null; toPhone?: string | null; message: string };
-    }
-  | {
-      type: "draft_email";
-      payload: { toName?: string | null; toEmail?: string | null; subject: string; body: string };
-    };
+  | { type: "draft_sms"; payload: { toName?: string | null; toPhone?: string | null; message: string } }
+  | { type: "draft_email"; payload: { toName?: string | null; toEmail?: string | null; subject: string; body: string } };
 
 type AIEnvelope = {
   actions: any[];
   hint: string | null;
 
-  // coach fields (nowe)
   speaker?: CoachOutput["speaker"];
   stage?: CoachOutput["stage"];
   tips?: string[];
@@ -135,6 +134,7 @@ function coerceActions(raw: any): AssistantAction[] {
           preferences: a?.payload?.preferences ? safeStr(a.payload.preferences) : null,
         },
       });
+      continue;
     }
 
     if (type === "create_calendar_event") {
@@ -144,21 +144,16 @@ function coerceActions(raw: any): AssistantAction[] {
 
       const title = safeStr(a?.payload?.title).trim() || "Spotkanie";
       const note = safeStr(a?.payload?.note);
-      const eventType = (safeStr(a?.payload?.eventType) as any) || "pozysk";
+
+      const et = safeStr(a?.payload?.eventType);
+      const eventType: "pozysk" | "prezentacja" | "umowa" | "inne" =
+        et === "prezentacja" || et === "umowa" || et === "inne" ? et : "pozysk";
 
       actions.push({
         type: "create_calendar_event",
-        payload: {
-          date,
-          time,
-          title,
-          note,
-          eventType:
-            eventType === "prezentacja" || eventType === "umowa" || eventType === "inne"
-              ? eventType
-              : "pozysk",
-        },
+        payload: { date, time, title, note, eventType },
       });
+      continue;
     }
 
     if (type === "create_followup") {
@@ -180,6 +175,7 @@ function coerceActions(raw: any): AssistantAction[] {
           followupType,
         },
       });
+      continue;
     }
 
     if (type === "create_contact") {
@@ -193,6 +189,7 @@ function coerceActions(raw: any): AssistantAction[] {
           email: a?.payload?.email ? safeStr(a.payload.email).trim() : null,
         },
       });
+      continue;
     }
 
     if (type === "draft_sms") {
@@ -206,6 +203,7 @@ function coerceActions(raw: any): AssistantAction[] {
           message,
         },
       });
+      continue;
     }
 
     if (type === "draft_email") {
@@ -221,6 +219,7 @@ function coerceActions(raw: any): AssistantAction[] {
           body,
         },
       });
+      continue;
     }
   }
 
@@ -277,29 +276,39 @@ function coerceCoach(raw: any): CoachOutput {
 ========================= */
 
 export async function POST(req: Request) {
-  
-    const openai = getOpenAI();
-    if (!openai) {
-      return NextResponse.json(
-        { error: "Missing OPENAI_API_KEY", details: "Ustaw OPENAI_API_KEY w Vercel -> Project Settings -> Environment Variables." },
-        { status: 500 }
-      );
-    }
-try {
+  const openai = getOpenAI();
+  if (!openai) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Missing OPENAI_API_KEY",
+        details: "Ustaw OPENAI_API_KEY w Vercel -> Project Settings -> Environment Variables.",
+      },
+      { status: 500 }
+    );
+  }
+
+  try {
     const formData = await req.formData();
     const file = formData.get("audio") as File | null;
-    if (!file) return NextResponse.json({ success: false, error: "Brak pliku audio" }, { status: 400 });
+
+    if (!file) {
+      return NextResponse.json({ success: false, error: "Brak pliku audio" }, { status: 400 });
+    }
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
     /* 1) TRANSKRYPCJA */
     const transcription = await openai.audio.transcriptions.create({
+      // w Node 18+ masz globalny File (Next runtime nodejs)
       file: new File([buffer], "audio.webm", { type: file.type || "audio/webm" }),
       model: "gpt-4o-mini-transcribe",
     });
 
     const transcript = transcription.text?.trim() || "";
-    if (!transcript) return NextResponse.json({ success: false, error: "Pusta transkrypcja" }, { status: 400 });
+    if (!transcript) {
+      return NextResponse.json({ success: false, error: "Pusta transkrypcja" }, { status: 400 });
+    }
 
     /* 2) AI -> ACTIONS + COACH */
     const nowISO = new Date().toISOString();
@@ -307,35 +316,36 @@ try {
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
+      temperature: 0.2,
       messages: [
         {
           role: "system",
           content: [
-            "Jeste[ asystentem CRM + trenerem rozm�w dla agenta nieruchomo[ci w Polsce.",
-            "Masz zwraca WY9�CZNIE czysty JSON (bez markdown, bez komentarzy).",
+            "Jesteś asystentem CRM + trenerem rozmów dla agenta nieruchomości w Polsce.",
+            "Masz zwracać WYŁĄCZNIE czysty JSON (bez markdown, bez komentarzy).",
             "",
-            "Zwracasz jednocze[nie:",
-            "1) actions[] (CRM)  jak dotychczas",
-            "2) COACHING dla rozmowy: speaker, stage, objections[], tips[], nextLine",
+            "Zwracasz jednocześnie:",
+            "1) actions[] (CRM)",
+            "2) COACHING: speaker, stage, objections[], tips[], nextLine",
             "",
-            "Tryb rozmowy (mode): exclusive (wyB&czno[!) albo open (otwarta).",
+            "Tryb rozmowy (mode): exclusive (wyłączność) albo open (otwarta).",
             "",
-            "ReguBy dat:",
-            "- Je|eli u|ytkownik nie poda roku, przyjmij bie|&cy rok wzgl"dem `nowISO`.",
-            "- Je|eli data bez roku jest ju| w przeszBo[ci wzgl"dem `nowISO`, ustaw kolejny rok.",
+            "Reguły dat:",
+            "- Jeżeli użytkownik nie poda roku, przyjmij bieżący rok względem `nowISO`.",
+            "- Jeżeli data bez roku jest już w przeszłości względem `nowISO`, ustaw kolejny rok.",
             "- Formaty: date = YYYY-MM-DD, time = HH:mm.",
             "",
-            "Typy event�w: pozysk | prezentacja | umowa | inne.",
+            "Typy eventów: pozysk | prezentacja | umowa | inne.",
             "Follow-up: followupType: pozysk | prezentacja.",
             "",
-            "Wa|ne: Nie wymy[laj numer�w telefonu/email je[li ich nie ma.",
-            "Je[li komenda CRM jest niepeBna: actions = [] i hint z kr�tk& sugesti&.",
+            "Ważne: Nie wymyślaj numerów telefonu/email jeśli ich nie ma.",
+            "Jeśli komenda CRM jest niepewna: actions = [] i hint z krótką sugestią.",
             "",
             "COACHING:",
-            "- speaker: kto m�wi w tym fragmencie transkrypcji (client/agent/unknown).",
-            "- stage: raport/needs/value/terms/close/unknown (jeden wyb�r).",
-            "- objections: max 4. Ka|da ma: type, evidence (kr�tki cytat), response (co agent ma powiedzie!), question (pytanie domykaj&ce).",
-            "- tips: max 6, kr�tkie konkretne zdania do u|ycia teraz.",
+            "- speaker: kto mówi w tym fragmencie transkrypcji (client/agent/unknown).",
+            "- stage: rapport/needs/value/terms/close/unknown (jeden wybór).",
+            "- objections: max 4 (type, evidence, response, question).",
+            "- tips: max 6.",
             "- nextLine: jedno najlepsze zdanie do powiedzenia TERAZ (pod tryb mode).",
           ].join("\n"),
         },
@@ -347,18 +357,10 @@ mode: ${mode}
 TRANSKRYPCJA (ostatni fragment):
 ${transcript}
 
-Zwr� JSON o strukturze:
+Zwróć JSON o strukturze:
 {
-  "actions": [
-    // { "type": "create_lead", "payload": { "name": "...", "phone": "...", "preferences": "..." } }
-    // { "type": "create_calendar_event", "payload": { "date": "YYYY-MM-DD", "time": "HH:mm", "title": "...", "note": "...", "eventType": "pozysk" } }
-    // { "type": "create_followup", "payload": { "relatedName": "Jan Kowalski", "dueDate": "YYYY-MM-DD", "time": "HH:mm", "followupType": "pozysk" } }
-    // { "type": "create_contact", "payload": { "name": "...", "phone": "...", "email": "..." } }
-    // { "type": "draft_sms", "payload": { "toName": "...", "toPhone": "...", "message": "..." } }
-    // { "type": "draft_email", "payload": { "toName": "...", "toEmail": "...", "subject": "...", "body": "..." } }
-  ],
+  "actions": [],
   "hint": string | null,
-
   "speaker": "client" | "agent" | "unknown",
   "stage": "rapport" | "needs" | "value" | "terms" | "close" | "unknown",
   "tips": string[],
@@ -370,19 +372,17 @@ Zwr� JSON o strukturze:
   ]
 }
 
-Je[li z transkrypcji wynika: klient szuka mieszkania + data spotkania, zwr� DWIE akcje:
+Jeśli z transkrypcji wynika: klient szuka mieszkania + data spotkania, zwróć DWIE akcje:
 - create_lead
 - create_calendar_event
 
-Je[li z transkrypcji wynika: "dodaj follow up ...", zwr� create_followup.
-Je[li z transkrypcji wynika: "wy[lij sms/email ...", zwr� draft_sms/draft_email (tylko draft).`,
+Jeśli z transkrypcji wynika: "dodaj follow up ...", zwróć create_followup.
+Jeśli z transkrypcji wynika: "wyślij sms/email ...", zwróć draft_sms/draft_email (tylko draft).`,
         },
       ],
-      // troch" szybciej / stabilniej w JSON: ucinamy kreatywno[!
-      temperature: 0.2,
     });
 
-    const raw = completion.choices[0].message.content || "";
+    const raw = completion.choices?.[0]?.message?.content || "";
     const parsed = extractJSON(raw) as AIEnvelope | null;
 
     const actions = coerceActions(parsed);
@@ -390,7 +390,7 @@ Je[li z transkrypcji wynika: "wy[lij sms/email ...", zwr� draft_sms/draft_emai
 
     const coach = coerceCoach(parsed);
 
-    /* 3) Legacy (|eby nic nie popsu!): lead/meeting */
+    /* 3) Legacy (żeby nic nie popsuć): lead/meeting */
     const leadAction = actions.find((a) => a.type === "create_lead") as
       | { type: "create_lead"; payload: { name: string; phone?: string | null; preferences?: string | null } }
       | undefined;
@@ -424,7 +424,7 @@ Je[li z transkrypcji wynika: "wy[lij sms/email ...", zwr� draft_sms/draft_emai
     if (eventAction) {
       legacyMeeting = {
         id: Date.now(),
-        title: eventAction.payload.title || "Spotkanie z gBos�wki",
+        title: eventAction.payload.title || "Spotkanie z głosówki",
         date: eventAction.payload.date,
         time: eventAction.payload.time,
       };
@@ -449,8 +449,8 @@ Je[li z transkrypcji wynika: "wy[lij sms/email ...", zwr� draft_sms/draft_emai
       objections: coach.objections,
     });
   } catch (e: any) {
-    console.error(e);
-    const msg = typeof e?.message === "string" ? e.message : "BBd serwera voice-analyze";
+    console.error("voice-analyze error:", e);
+    const msg = typeof e?.message === "string" ? e.message : "Błąd serwera voice-analyze";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

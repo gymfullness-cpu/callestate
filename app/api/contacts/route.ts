@@ -1,5 +1,5 @@
-?import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma";
+﻿import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
 
     if (!orgId) return NextResponse.json({ error: "Brak orgId" }, { status: 400 });
 
-    // SQLite + Prisma: NIE używamy mode:"insensitive" (powoduje 500)
+    // SQLite + Prisma: NIE uĹĽywamy mode:"insensitive" (powoduje 500)
     const where: any = { orgId };
 
     if (q) {
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
   } catch (e: any) {
     console.log("ERROR /api/contacts GET:", e);
     return NextResponse.json(
-      { error: "Błąd serwera /api/contacts", message: e?.message ?? String(e) },
+      { error: "BĹ‚Ä…d serwera /api/contacts", message: e?.message ?? String(e) },
       { status: 500 }
     );
   }
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
   } catch (e: any) {
     console.log("ERROR /api/contacts POST:", e);
     return NextResponse.json(
-      { error: "Błąd serwera /api/contacts", message: e?.message ?? String(e) },
+      { error: "BĹ‚Ä…d serwera /api/contacts", message: e?.message ?? String(e) },
       { status: 500 }
     );
   }

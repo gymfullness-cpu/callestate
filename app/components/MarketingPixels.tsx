@@ -1,4 +1,4 @@
-?"use client";
+"use client";
 
 import Script from "next/script";
 import { useEffect, useState } from "react";
@@ -18,7 +18,9 @@ export default function MarketingPixels() {
     try {
       setMetaId(localStorage.getItem("ads_meta_pixel_id") || "");
       setTtId(localStorage.getItem("ads_tiktok_pixel_id") || "");
-    } catch {}
+    } catch {
+      // ignore
+    }
   }, []);
 
   return (
@@ -38,9 +40,7 @@ export default function MarketingPixels() {
             fbq('init', '${metaId}');
             fbq('track', 'PageView');
           `}</Script>
-          <noscript>
-            {/* noscript pixel w Next i tak jest ograniczony, ale zostawiamy symbolicznie */}
-          </noscript>
+          <noscript />
         </>
       ) : null}
 

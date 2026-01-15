@@ -1,4 +1,4 @@
-?import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { headers } from "next/headers";
@@ -46,20 +46,22 @@ function ensureDataDir() {
 function readJsonArray(fp: string): any[] {
   if (!fs.existsSync(fp)) return [];
   try {
-    const raw = fs.readFileSync(fp, "utf8");
+    const raw = fs.readFileSync(fp, "utf8").trim();
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
+
 function writeJson(fp: string, data: any) {
   ensureDataDir();
   fs.writeFileSync(fp, JSON.stringify(data, null, 2), "utf8");
 }
 
-async function getClientIp() {
-  const h = await headers();
+function getClientIp() {
+  const h = headers(); // <-- bez await
   const xff = h.get("x-forwarded-for");
   if (xff) return xff.split(",")[0].trim();
   const xr = h.get("x-real-ip");
@@ -93,7 +95,7 @@ function checkRateLimit(ip: string) {
   if (last10min >= 3) return { ok: false as const, error: "Za dużo zgłoszeń. Spróbuj ponownie za kilka minut." };
   if (last24h >= 10) return { ok: false as const, error: "Limit dzienny zgłoszeń został przekroczony." };
 
-  // zapisz €śevent€ť
+  // zapisz event
   cleaned.unshift({ ip, ts: t });
   writeJson(fp, cleaned);
 
@@ -104,19 +106,22 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as Incoming;
 
-    // … honeypot: boty to wypełniajć…
+    // honeypot
     if (body.website && String(body.website).trim().length > 0) {
       return NextResponse.json({ ok: true, id: `spam_${Date.now()}` });
     }
 
-    // … anty-bot: jeśli ktoś €śwyśle€ť w < 2 sekundy od wejścia
+    // anty-bot: wysyłka w < 2 sekundy od wejścia
     const startedAt = Number(body.startedAt || 0);
     if (startedAt && nowMs() - startedAt < 2000) {
-      return NextResponse.json({ ok: false, error: "Zgłoszenie wyglć…da na automatyczne. Spróbuj ponownie." }, { status: 429 });
+      return NextResponse.json(
+        { ok: false, error: "Zgłoszenie wygląda na automatyczne. Spróbuj ponownie." },
+        { status: 429 }
+      );
     }
 
-    // … rate limit per IP
-    const ip = await getClientIp();
+    // rate limit per IP
+    const ip = getClientIp();
     const rl = checkRateLimit(ip);
     if (!rl.ok) return NextResponse.json({ ok: false, error: rl.error }, { status: 429 });
 
@@ -166,7 +171,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, id });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: "Błąd serwera", message: e?.message || "" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Błąd serwera", message: e?.message || String(e) },
+      { status: 500 }
+    );
   }
 }
 
@@ -196,6 +204,9 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: "Błąd serwera", message: e?.message || "" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Błąd serwera", message: e?.message || String(e) },
+      { status: 500 }
+    );
   }
 }

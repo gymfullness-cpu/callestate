@@ -1,11 +1,15 @@
-?import OpenAI from "openai";
+import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { getMemory, saveMemory, Msg } from "../../../lib/calliMemory";
 
 export const runtime = "nodejs";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+function getOpenAI() {
+  const key = process.env.OPENAI_API_KEY?.trim();
+  if (!key) return null;
+  return new OpenAI({ apiKey: key });
+}
 
 function getOrCreateUserId(req: Request) {
   const cookie = req.headers.get("cookie") || "";
@@ -17,7 +21,7 @@ function getOrCreateUserId(req: Request) {
   return { userId, setCookie };
 }
 
-// … helper: wycić…gnij cytowania URL z odpowiedzi (url_citation annotations)
+// helper: wyciągnij cytowania URL z odpowiedzi (url_citation annotations)
 function extractUrlCitations(resp: any): Array<{ title?: string; url: string }> {
   const out: Array<{ title?: string; url: string }> = [];
 
@@ -47,15 +51,14 @@ function extractUrlCitations(resp: any): Array<{ title?: string; url: string }> 
   });
 }
 
-// … TS/Vercel fix: normalizacja wiadomości do typu Msg[]
+// normalizacja wiadomości do typu Msg[]
 function toMsgArray(input: unknown): Msg[] {
   if (!Array.isArray(input)) return [];
-
   const out: Msg[] = [];
+
   for (const m of input as any[]) {
     const role = m?.role;
     const content = m?.content;
-
     if ((role === "user" || role === "assistant") && typeof content === "string") {
       out.push({ role, content });
     }
@@ -64,76 +67,77 @@ function toMsgArray(input: unknown): Msg[] {
 }
 
 export async function POST(req: Request) {
-  
+  try {
     const openai = getOpenAI();
     if (!openai) {
       return NextResponse.json(
-        { error: "Missing OPENAI_API_KEY", details: "Ustaw OPENAI_API_KEY w Vercel -> Project Settings -> Environment Variables." },
+        {
+          error: "Missing OPENAI_API_KEY",
+          details:
+            "Ustaw OPENAI_API_KEY w .env.local (lokalnie) albo w Vercel -> Project Settings -> Environment Variables.",
+        },
         { status: 500 }
       );
     }
-try {
-    const body = (await req.json()) as unknown;
-    const incomingMessages = toMsgArray((body as any)?.messages);
+
+    const body = (await req.json().catch(() => null)) as any;
+    const incomingMessages = toMsgArray(body?.messages);
+
+    // Jeśli frontend wysyła coś innego niż {messages:[...]} to dostaniesz 400/500.
+    if (!incomingMessages.length) {
+      return NextResponse.json(
+        { error: "bad_request", details: "Body musi zawierać messages: [{role, content}, ...]" },
+        { status: 400 }
+      );
+    }
 
     const { userId, setCookie } = getOrCreateUserId(req);
-    const mem = getMemory(userId);
+    const mem = getMemory(userId) || { profile: "", messages: [] };
 
-    // … DODATEK: mniejszy kontekst = szybciej
-    const lastMemMsgs: Msg[] = toMsgArray(mem?.messages).slice(-12);
+    // mniejszy kontekst = szybciej
+    const lastMemMsgs: Msg[] = toMsgArray(mem.messages).slice(-12);
     const userMsgs: Msg[] = incomingMessages.slice(-12);
 
     const vectorStoreId = process.env.CALLI_VECTOR_STORE_ID?.trim();
 
-    // … Stabilny prompt: prosimy o web search dla rzeczy €śzmiennych€ť + preferowane domeny
     const system = `
 Jesteś Calli Chat — ekspert od nieruchomości (PL) i asystent ogólny.
 
 Zasady:
 - Odpowiadaj po polsku, krótko i konkretnie.
-- Jeśli temat może być‡ aktualny / zmienny (terminy, opłaty, procedury, przepisy, urzć™dy) †’ użyj WEB SEARCH.
-- Jeśli temat jest z Twojej bazy wiedzy †’ użyj FILE SEARCH.
-- Dawaj kroki €śco zrobić‡€ť, checklisty dokumentów.
-- Jeśli brakuje danych (miasto, rodzaj prawa: własność‡/spółdzielcze, KW) †’ dopytaj.
+- Jeśli temat może być aktualny / zmienny (terminy, opłaty, procedury, przepisy, urzędy) → użyj WEB SEARCH.
+- Jeśli temat jest z Twojej bazy wiedzy → użyj FILE SEARCH.
+- Dawaj kroki "co zrobić", checklisty dokumentów.
+- Jeśli brakuje danych (miasto, rodzaj prawa: własność/spółdzielcze, KW) → dopytaj.
 - Nie zmyślaj. Jeśli korzystasz z internetu, podaj źródła.
 - Dodaj zdanie: "To informacja ogólna, nie porada prawna."
 
-Preferowane źródła (jeśli pasujć… do pytania):
+Preferowane źródła:
 - gov.pl, ms.gov.pl, isap.sejm.gov.pl, podatki.gov.pl, biznes.gov.pl
 
 Profil użytkownika:
 ${mem.profile || "(brak)"}
-`;
+`.trim();
 
-    // … Tools: web_search zawsze + file_search jeśli masz vector store
+    // Tools: web_search zawsze + file_search jeśli masz vector store
     const tools: any[] = [{ type: "web_search" }];
-
     if (vectorStoreId) {
-      tools.push({
-        type: "file_search",
-        vector_store_ids: [vectorStoreId],
-      });
+      tools.push({ type: "file_search", vector_store_ids: [vectorStoreId] });
     }
 
     const resp = await openai.responses.create({
       model: "gpt-4.1-mini",
       tools,
       temperature: 0.2,
-
-      // … DODATEK: limit odpowiedzi = szybciej
       max_output_tokens: 500,
-
       input: [{ role: "system", content: system }, ...lastMemMsgs, ...userMsgs],
     });
 
-    const reply =
-      (resp.output_text || "").trim() || "Nie udało mi się wygenerować‡ odpowiedzi.";
-
+    const reply = (resp.output_text || "").trim() || "Nie udało mi się wygenerować odpowiedzi.";
     const sources = extractUrlCitations(resp);
 
-    // … update pamić™ci (TS-safe)
+    // update pamięci
     const assistantMsg: Msg = { role: "assistant", content: reply };
-
     const merged: Msg[] = [...lastMemMsgs, ...userMsgs, assistantMsg].slice(-40);
 
     const prof = await openai.responses.create({
@@ -143,7 +147,7 @@ ${mem.profile || "(brak)"}
         {
           role: "system",
           content:
-            "Zaktualizuj krótki profil użytkownika w 1—2 zdaniach (rola, miasto, preferencje odpowiedzi). Jeśli brak nowych faktów: zwróć bez zmian.",
+            "Zaktualizuj krótki profil użytkownika w 1–2 zdaniach (rola, miasto, preferencje odpowiedzi). Jeśli brak nowych faktów: zwróć bez zmian.",
         },
         {
           role: "user",

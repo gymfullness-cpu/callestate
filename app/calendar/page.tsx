@@ -1,6 +1,10 @@
-?"use client";
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+
+/* =========================
+   TYPES
+========================= */
 
 type EventType = "pozysk" | "prezentacja" | "umowa" | "inne";
 
@@ -11,111 +15,124 @@ type CalendarEvent = {
   title: string;
   note: string;
   type: EventType;
+  durationMin?: number; // opcjonalnie (domyślnie 30)
 };
 
 const STORAGE_KEY = "calendar-events";
-const ZOOM_KEY = "calendar-zoom";
 
-// & szerszy zakres zoom
-const ZOOM_MIN = 30;
-const ZOOM_MAX = 160;
+/* =========================
+   META
+========================= */
 
-const WEEKDAYS_PL = ["Pon", "Wt", "9ar", "Czw", "Pt", "Sob", "Ndz"];
+const WEEKDAYS_PL = ["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Ndz"];
 
-const TYPE_META: Record<EventType, { label: string; bg: string; border: string; text: string }> = {
+const TYPE_META: Record<
+  EventType,
+  { label: string; dot: string; pillBg: string; pillBorder: string; pillText: string }
+> = {
   pozysk: {
     label: "Pozysk",
-    bg: "rgba(45,212,191,0.18)",
-    border: "rgba(45,212,191,0.45)",
-    text: "#0f172a",
+    dot: "rgba(45,212,191,0.95)",
+    pillBg: "rgba(45,212,191,0.14)",
+    pillBorder: "rgba(45,212,191,0.30)",
+    pillText: "rgba(234,255,251,0.96)",
   },
   prezentacja: {
     label: "Prezentacja",
-    bg: "rgba(29,78,216,0.14)",
-    border: "rgba(29,78,216,0.34)",
-    text: "#0f172a",
+    dot: "rgba(29,78,216,0.95)",
+    pillBg: "rgba(29,78,216,0.14)",
+    pillBorder: "rgba(29,78,216,0.28)",
+    pillText: "rgba(224,232,255,0.96)",
   },
   umowa: {
     label: "Umowa",
-    bg: "rgba(245,158,11,0.14)",
-    border: "rgba(245,158,11,0.34)",
-    text: "#0f172a",
+    dot: "rgba(245,158,11,0.95)",
+    pillBg: "rgba(245,158,11,0.14)",
+    pillBorder: "rgba(245,158,11,0.28)",
+    pillText: "rgba(255,236,200,0.96)",
   },
   inne: {
     label: "Inne",
-    bg: "rgba(15,23,42,0.07)",
-    border: "rgba(15,23,42,0.16)",
-    text: "rgba(15,23,42,0.82)",
+    dot: "rgba(148,163,184,0.95)",
+    pillBg: "rgba(255,255,255,0.06)",
+    pillBorder: "rgba(255,255,255,0.10)",
+    pillText: "rgba(234,255,251,0.92)",
   },
 };
 
+/* =========================
+   HELPERS
+========================= */
+
 function pad2(n: number) {
   return String(n).padStart(2, "0");
+}
+
+function toISODate(d: Date) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+
+function parseISODate(iso: string) {
+  const [y, m, d] = iso.split("-").map((x) => Number(x));
+  return new Date(y, (m || 1) - 1, d || 1, 12, 0, 0, 0);
+}
+
+function monthLabelPL(year: number, mIndex: number) {
+  return new Date(year, mIndex, 1).toLocaleString("pl-PL", { month: "long" });
+}
+
+function mondayFirstDowIndex(date: Date) {
+  const js = date.getDay(); // 0=Sun..6=Sat
+  return (js + 6) % 7; // 0=Mon..6=Sun
+}
+
+function minutesSinceMidnight(hhmm: string) {
+  const [h, m] = hhmm.split(":").map((x) => Number(x));
+  return (h || 0) * 60 + (m || 0);
 }
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-function monthLabelPL(year: number, mIndex: number) {
-  return new Date(year, mIndex).toLocaleString("pl", { month: "long" });
-}
+/* =========================
+   PAGE
+========================= */
 
-// Monday-first day index: 0=Mon ... 6=Sun
-function mondayFirstDowIndex(date: Date) {
-  const js = date.getDay(); // 0=Sun..6=Sat
-  return (js + 6) % 7;
-}
+const DEFAULT_DURATION = 30;
 
 export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [view, setView] = useState<"month" | "year">("month");
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  const [selectedDate, setSelectedDate] = useState<string>(() => toISODate(new Date()));
+  const [anchor, setAnchor] = useState<Date>(() => new Date()); // mini-kalendarz
+
+  // modal add/edit
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState<CalendarEvent | null>(null);
 
   const [form, setForm] = useState<Omit<CalendarEvent, "id">>({
-    date: "",
-    time: "",
+    date: toISODate(new Date()),
+    time: "09:00",
     title: "",
     note: "",
     type: "pozysk",
+    durationMin: DEFAULT_DURATION,
   });
 
-  const [zoom, setZoom] = useState<number>(100);
-
-  // auto-scroll to today in month view (desktop grid)
-  const todayCellRef = useRef<HTMLButtonElement | null>(null);
-  const didAutoScrollRef = useRef(false);
+  // quick filter (right panel)
+  const [filterType, setFilterType] = useState<EventType | "all">("all");
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) setEvents(JSON.parse(saved));
-
-    const z = localStorage.getItem(ZOOM_KEY);
-    if (z) {
-      const parsed = Number(z);
-      if (!Number.isNaN(parsed)) setZoom(clamp(parsed, ZOOM_MIN, ZOOM_MAX));
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as CalendarEvent[];
+        setEvents(Array.isArray(parsed) ? parsed : []);
+      } catch {
+        setEvents([]);
+      }
     }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(ZOOM_KEY, String(zoom));
-  }, [zoom]);
-
-  // Ctrl/� + scroll = zoom (bez |adnych napis�w w UI)
-  useEffect(() => {
-    const onWheel = (e: WheelEvent) => {
-      const withMod = e.ctrlKey || e.metaKey;
-      if (!withMod) return;
-
-      e.preventDefault();
-      const dir = e.deltaY > 0 ? -1 : 1;
-      const step = 5;
-      setZoom((z) => clamp(z + dir * step, ZOOM_MIN, ZOOM_MAX));
-    };
-
-    window.addEventListener("wheel", onWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWheel as any);
   }, []);
 
   const saveAll = (data: CalendarEvent[]) => {
@@ -123,45 +140,61 @@ export default function CalendarPage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   };
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = today.getMonth();
-  const todayDateStr = `${year}-${pad2(month + 1)}-${pad2(today.getDate())}`;
+  const todayISO = useMemo(() => toISODate(new Date()), []);
 
-  const daysInMonth = useMemo(() => new Date(year, month + 1, 0).getDate(), [year, month]);
-  const firstDayOffset = useMemo(() => mondayFirstDowIndex(new Date(year, month, 1)), [year, month]);
+  // keep anchor month aligned to selectedDate
+  useEffect(() => {
+    const d = parseISODate(selectedDate);
+    setAnchor((prev) => {
+      const same = prev.getFullYear() === d.getFullYear() && prev.getMonth() === d.getMonth();
+      return same ? prev : d;
+    });
+  }, [selectedDate]);
 
-  const byDate = (date: string) => events.filter((e) => e.date === date);
-
-  const openDay = (date: string) => {
-    setSelectedDate(date);
-    setEditing(null);
-    setForm({ date, time: "", title: "", note: "", type: "pozysk" });
-  };
-
-  const saveEvent = () => {
-    if (!form.time || !form.title) return alert("UzupeBnij godzin" i tytuB.");
-
-    if (editing) {
-      saveAll(events.map((e) => (e.id === editing.id ? { ...editing, ...form } : e)));
-    } else {
-      saveAll([...events, { ...form, id: Date.now() }]);
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>();
+    for (const e of events) {
+      if (!map.has(e.date)) map.set(e.date, []);
+      map.get(e.date)!.push(e);
     }
+    for (const [k, arr] of map.entries()) {
+      arr.sort((a, b) => minutesSinceMidnight(a.time) - minutesSinceMidnight(b.time));
+      map.set(k, arr);
+    }
+    return map;
+  }, [events]);
 
-    setEditing(null);
-    setForm({ ...form, time: "", title: "", note: "" });
-  };
+  const dayEventsAll = useMemo(() => {
+    const arr = eventsByDate.get(selectedDate) ?? [];
+    return arr.slice().sort((a, b) => minutesSinceMidnight(a.time) - minutesSinceMidnight(b.time));
+  }, [eventsByDate, selectedDate]);
 
-  const editEvent = (e: CalendarEvent) => {
-    setEditing(e);
-    setForm({ ...e });
-  };
+  const dayEvents = useMemo(() => {
+    const base = dayEventsAll;
+    if (filterType === "all") return base;
+    return base.filter((e) => e.type === filterType);
+  }, [dayEventsAll, filterType]);
 
-  const deleteEvent = (id: number) => {
-    if (!confirm("Usun&! wydarzenie?")) return;
-    saveAll(events.filter((e) => e.id !== id));
-  };
+  // upcoming list
+  const upcoming = useMemo(() => {
+    const now = new Date();
+    const nowISO = toISODate(now);
+    const nowMins = now.getHours() * 60 + now.getMinutes();
 
+    const out: CalendarEvent[] = [];
+    for (const e of events) {
+      if (e.date < nowISO) continue;
+      if (e.date === nowISO && minutesSinceMidnight(e.time) < nowMins) continue;
+      out.push(e);
+    }
+    out.sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return minutesSinceMidnight(a.time) - minutesSinceMidnight(b.time);
+    });
+    return out.slice(0, 8);
+  }, [events]);
+
+  // stats
   const stats = useMemo(() => {
     const all = events.length;
     const pozysk = events.filter((e) => e.type === "pozysk").length;
@@ -170,147 +203,427 @@ export default function CalendarPage() {
     return { all, pozysk, prezentacja, umowa };
   }, [events]);
 
-  // zoom scale
-  const zoomScale = zoom / 100;
+  // mini calendar month
+  const monthYear = anchor.getFullYear();
+  const monthIndex = anchor.getMonth();
+  const daysInMonth = useMemo(() => new Date(monthYear, monthIndex + 1, 0).getDate(), [monthYear, monthIndex]);
+  const firstOffset = useMemo(() => mondayFirstDowIndex(new Date(monthYear, monthIndex, 1)), [monthYear, monthIndex]);
 
-  // month layout based on zoom (desktop grid)
-  const monthCellMinH = Math.max(90, Math.round(160 * zoomScale));
-  const monthCellPad = Math.max(10, Math.round(14 * zoomScale));
-  const dayNumberSize = Math.max(12, Math.round(18 * zoomScale));
-  const weekdayHeaderSize = Math.max(10, Math.round(12 * zoomScale));
+  const prevMonth = () => setAnchor((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
+  const nextMonth = () => setAnchor((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
+  const goToday = () => setSelectedDate(todayISO);
 
-  // year layout based on zoom
-  const yearDayPadY = Math.max(5, Math.round(8 * zoomScale));
-  const yearDayRadius = Math.max(9, Math.round(12 * zoomScale));
+  const stepDay = (delta: number) => {
+    const d = parseISODate(selectedDate);
+    d.setDate(d.getDate() + delta);
+    setSelectedDate(toISODate(d));
+  };
 
-  // & auto-scroll to today (only once)  desktop grid
-  useEffect(() => {
-    if (view !== "month") return;
-    if (didAutoScrollRef.current) return;
+  // modal helpers
+  const openNew = (dateISO: string) => {
+    setEditing(null);
+    setForm({
+      date: dateISO,
+      time: "09:00",
+      title: "",
+      note: "",
+      type: "pozysk",
+      durationMin: DEFAULT_DURATION,
+    });
+    setIsModalOpen(true);
+  };
 
-    const t = window.setTimeout(() => {
-      if (!todayCellRef.current) return;
-      todayCellRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-      didAutoScrollRef.current = true;
-    }, 120);
+  const openEdit = (e: CalendarEvent) => {
+    setEditing(e);
+    setForm({
+      date: e.date,
+      time: e.time,
+      title: e.title,
+      note: e.note,
+      type: e.type,
+      durationMin: e.durationMin ?? DEFAULT_DURATION,
+    });
+    setIsModalOpen(true);
+  };
 
-    return () => window.clearTimeout(t);
-  }, [view]);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditing(null);
+  };
 
-  // & jasne kafelki + weekend te| jasny, tylko cieplejszy
-  const DAY_BG = "rgba(255,255,255,0.96)";
-  const DAY_BORDER = "rgba(15,23,42,0.10)";
+  const saveEvent = () => {
+    if (!form.date) return alert("Brakuje daty.");
+    if (!form.time || !form.title) return alert("Uzupełnij godzinę i tytuł.");
 
-  const WEEKEND_BG = "rgba(255,255,255,0.96)";
-  const WEEKEND_BORDER = "rgba(245,158,11,0.22)";
-  const WEEKEND_TOP_GLOW = "inset 0 1px 0 rgba(245,158,11,0.20)";
+    const clean: Omit<CalendarEvent, "id"> = {
+      ...form,
+      durationMin: clamp(Number(form.durationMin ?? DEFAULT_DURATION), 15, 12 * 60),
+    };
 
-  // & Mobile list data (pionowo)
-  const monthDays = useMemo(() => {
-    const out: Array<{
-      date: string;
-      day: number;
-      weekdayIdx: number; // 0..6 Mon..Sun
-      isWeekend: boolean;
-      isToday: boolean;
-      items: CalendarEvent[];
-    }> = [];
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = `${year}-${pad2(month + 1)}-${pad2(d)}`;
-      const weekdayIdx = (firstDayOffset + (d - 1)) % 7;
-      const isWeekend = weekdayIdx === 5 || weekdayIdx === 6;
-      const isToday = date === todayDateStr;
-      const items = byDate(date).slice().sort((a, b) => a.time.localeCompare(b.time));
-      out.push({ date, day: d, weekdayIdx, isWeekend, isToday, items });
+    if (editing) {
+      saveAll(events.map((e) => (e.id === editing.id ? { ...e, ...clean } : e)));
+    } else {
+      saveAll([...events, { id: Date.now(), ...clean }]);
     }
 
-    return out;
-  }, [daysInMonth, firstDayOffset, month, year, events, todayDateStr]);
+    closeModal();
+  };
+
+  const deleteEvent = (id: number) => {
+    if (!confirm("Usunąć wydarzenie?")) return;
+    saveAll(events.filter((e) => e.id !== id));
+    closeModal();
+  };
+
+  const selectedPretty = useMemo(() => {
+    const d = parseISODate(selectedDate);
+    return d.toLocaleDateString("pl-PL", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  }, [selectedDate]);
 
   return (
     <main className="mx-auto max-w-7xl px-4 md:px-6 py-8">
-      {/* Mobile-only styling for �[chmurki�e */}
       <style>{`
-        .ce-daycard {
+        .pill {
+          border-radius: 999px;
+          padding: 10px 14px;
+          font-weight: 1000;
+          cursor: pointer;
+          border: 1px solid rgba(255,255,255,0.10);
+          background: rgba(255,255,255,0.06);
+          color: var(--text-main);
+        }
+        .roundBtn {
+          width: 38px;
+          height: 38px;
+          border-radius: 999px;
+          border: 1px solid rgba(255,255,255,0.10);
+          background: rgba(255,255,255,0.06);
+          color: var(--text-main);
+          font-weight: 1000;
+          cursor: pointer;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+        }
+
+        .card {
           border-radius: 18px;
           border: 1px solid rgba(255,255,255,0.10);
           background: rgba(255,255,255,0.06);
+          box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+          overflow: hidden;
+        }
+        .cardHead {
+          padding: 12px 12px;
+          background: rgba(15,23,42,0.20);
+          border-bottom: 1px solid rgba(255,255,255,0.10);
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap: 10px;
+          color: rgba(234,255,251,0.92);
+        }
+        .muted {
+          color: rgba(234,255,251,0.78);
+          opacity: 0.9;
+          font-size: 12px;
+          font-weight: 900;
+        }
+
+        .layout {
+          margin-top: 18px;
+          display: grid;
+          grid-template-columns: 320px 1fr;
+          gap: 14px;
+          align-items: start;
+        }
+        @media (max-width: 980px) {
+          .layout {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        /* SIDE */
+        .sideBody {
+          background: rgba(255,255,255,0.92);
+          padding: 12px;
+          display: grid;
+          gap: 12px;
+        }
+
+        /* MINI CAL */
+        .miniCal {
+          border-radius: 16px;
+          border: 1px solid rgba(15,23,42,0.10);
+          background: rgba(255,255,255,0.96);
+          box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+          overflow: hidden;
+        }
+        .miniHead {
+          padding: 10px 10px;
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap: 8px;
+          border-bottom: 1px solid rgba(15,23,42,0.08);
+          color: rgba(15,23,42,0.84);
+        }
+        .miniTitle {
+          font-weight: 1000;
+          text-transform: capitalize;
+        }
+        .miniDays {
+          padding: 10px;
+          display:grid;
+          gap: 8px;
+        }
+        .miniWeekdays {
+          display:grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 6px;
+        }
+        .miniWeekday {
+          text-align:center;
+          font-size: 11px;
+          font-weight: 1000;
+          color: rgba(15,23,42,0.55);
+        }
+        .miniGrid {
+          display:grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 6px;
+        }
+        .miniCell {
+          border-radius: 12px;
+          border: 1px solid rgba(15,23,42,0.08);
+          background: rgba(15,23,42,0.02);
+          height: 36px;
+        }
+        .miniBtn {
+          border-radius: 12px;
+          border: 1px solid rgba(15,23,42,0.10);
+          background: rgba(255,255,255,0.98);
+          height: 36px;
+          cursor: pointer;
+          font-weight: 1000;
+          color: rgba(15,23,42,0.86);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap: 6px;
+        }
+        .miniBtn:hover { transform: translateY(-1px); }
+        .miniBtnActive {
+          border: 1px solid rgba(45,212,191,0.55) !important;
+          box-shadow: 0 0 0 4px rgba(45,212,191,0.12);
+        }
+        .miniDot {
+          width: 6px;
+          height: 6px;
+          border-radius: 999px;
+          background: rgba(29,78,216,0.70);
+          display:inline-block;
+        }
+
+        /* UPCOMING */
+        .upcomingBox {
+          border-radius: 16px;
+          border: 1px solid rgba(15,23,42,0.10);
+          background: rgba(255,255,255,0.96);
+          box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+          overflow: hidden;
+        }
+        .upcomingHead {
+          padding: 10px 10px;
+          border-bottom: 1px solid rgba(15,23,42,0.08);
+          display:flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 10px;
+          color: rgba(15,23,42,0.84);
+        }
+        .upcomingList {
+          padding: 10px;
+          display: grid;
+          gap: 8px;
+        }
+        .upItem {
+          border-radius: 14px;
+          padding: 10px 10px;
+          border: 1px solid rgba(15,23,42,0.10);
+          background: rgba(15,23,42,0.03);
+          color: rgba(15,23,42,0.86);
+          cursor:pointer;
+          text-align:left;
+        }
+        .upTop {
+          display:flex;
+          justify-content:space-between;
+          gap: 10px;
+          font-weight: 1000;
+          font-size: 12px;
+          opacity: 0.95;
+        }
+        .upTitle {
+          margin-top: 4px;
+          font-weight: 1000;
+          font-size: 13px;
+        }
+
+        /* RIGHT: DAY AGENDA */
+        .rightBody {
+          background: rgba(255,255,255,0.92);
+        }
+        .agendaTools {
+          padding: 12px;
+          display:flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid rgba(15,23,42,0.10);
+          background: rgba(255,255,255,0.96);
+        }
+        .select {
+          border-radius: 999px;
+          padding: 10px 12px;
+          border: 1px solid rgba(15,23,42,0.12);
+          background: rgba(15,23,42,0.03);
+          color: rgba(15,23,42,0.85);
+          font-weight: 1000;
+          outline: none;
+          cursor: pointer;
+        }
+        .agendaList {
+          padding: 12px;
+          display: grid;
+          gap: 10px;
+        }
+        .emptyBox {
+          border-radius: 16px;
+          border: 1px dashed rgba(15,23,42,0.16);
+          background: rgba(15,23,42,0.02);
           padding: 14px;
+          color: rgba(15,23,42,0.70);
+          font-weight: 900;
+          font-size: 13px;
         }
-        .ce-daycard--weekend {
-          border: 1px solid rgba(245,158,11,0.22);
-          background: rgba(245,158,11,0.08);
+        .eventRow {
+          border-radius: 16px;
+          border: 1px solid rgba(15,23,42,0.10);
+          background: rgba(255,255,255,0.98);
+          box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+          padding: 12px 12px;
+          cursor: pointer;
         }
-        .ce-daycard--today {
-          border-color: rgba(45,212,191,0.45) !important;
-          box-shadow: 0 0 0 4px rgba(45,212,191,0.14);
-        }
-        .ce-dayhead {
-          display: flex;
+        .eventTopLine {
+          display:flex;
           align-items: baseline;
           justify-content: space-between;
           gap: 10px;
         }
-        .ce-daytitle {
-          display: flex;
+        .leftTop {
+          display:flex;
           align-items: baseline;
           gap: 10px;
           min-width: 0;
         }
-        .ce-weekday {
-          font-weight: 900;
-          font-size: 12px;
-          color: rgba(234,255,251,0.92);
-          opacity: 0.95;
-          white-space: nowrap;
+        .dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          flex: 0 0 auto;
+          margin-top: 2px;
         }
-        .ce-daynum {
+        .time {
           font-weight: 1000;
-          font-size: 18px;
-          color: rgba(234,255,251,0.98);
-          letter-spacing: -0.2px;
+          font-size: 12px;
+          color: rgba(15,23,42,0.70);
+          flex: 0 0 auto;
         }
-        .ce-badge {
+        .title {
+          font-weight: 1000;
+          font-size: 14px;
+          color: rgba(15,23,42,0.92);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .pillType {
           border-radius: 999px;
           padding: 4px 10px;
-          font-size: 12px;
-          font-weight: 900;
-          border: 1px solid rgba(255,255,255,0.12);
-          background: rgba(15,23,42,0.20);
-          color: rgba(234,255,251,0.92);
+          font-size: 11px;
+          font-weight: 1000;
+          border: 1px solid;
           white-space: nowrap;
         }
-        .ce-badge--has {
-          border: 1px solid rgba(45,212,191,0.35);
-          background: rgba(45,212,191,0.16);
-        }
-        .ce-events {
-          margin-top: 10px;
-          display: grid;
-          gap: 8px;
-        }
-        .ce-mini {
-          border-radius: 14px;
-          padding: 10px 12px;
-          border: 1px solid rgba(255,255,255,0.12);
-        }
-        .ce-mini__top {
+        .note {
+          margin-top: 8px;
           font-size: 12px;
-          font-weight: 900;
-          opacity: 0.92;
-          color: rgba(234,255,251,0.82);
+          color: rgba(15,23,42,0.72);
+          line-height: 1.35;
+          white-space: pre-wrap;
         }
-        .ce-mini__title {
-          margin-top: 2px;
-          font-size: 13px;
+
+        /* MODAL */
+        .modalBackdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding: 14px;
+          background: rgba(0,0,0,0.70);
+        }
+        .modal {
+          width: 100%;
+          max-width: 720px;
+          border-radius: 18px;
+          background: rgba(255,255,255,0.98);
+          border: 1px solid rgba(15,23,42,0.10);
+          padding: 18px;
+          max-height: calc(100vh - 24px);
+          overflow: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        .label {
+          font-size: 12px;
           font-weight: 1000;
-          color: rgba(234,255,251,0.95);
+          margin-bottom: 6px;
+          display:block;
+          color: rgba(15,23,42,0.68);
         }
-        .ce-more {
-          font-size: 12px;
-          font-weight: 900;
-          opacity: 0.9;
+        .input {
+          width: 100%;
+          padding: 12px 12px;
+          border-radius: 14px;
+          border: 1px solid rgba(15,23,42,0.12);
+          background: rgba(15,23,42,0.03);
+          color: #0f172a;
+          outline: none;
+        }
+        .input:focus {
+          border-color: rgba(45, 212, 191, 0.55);
+          box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.16);
+        }
+        .btnPrimary {
+          border-radius: 14px;
+          padding: 12px 14px;
+          font-weight: 1000;
+          border: 1px solid rgba(45, 212, 191, 0.35);
+          background: rgba(45, 212, 191, 0.14);
+          color: #0f172a;
+          cursor: pointer;
+        }
+        .btnDanger {
+          border-radius: 14px;
+          padding: 12px 14px;
+          font-weight: 1000;
+          border: 1px solid rgba(239,68,68,0.22);
+          background: rgba(239,68,68,0.10);
+          color: rgba(185,28,28,0.95);
+          cursor: pointer;
         }
       `}</style>
 
@@ -318,9 +631,11 @@ export default function CalendarPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-main)" }}>
-            & Kalendarz
+            📅 Kalendarz — Mini miesiąc + Agenda
           </h1>
-          <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}></p>
+          <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+            Zostawiamy mini-kalendarz i „Następne”. Po prawej: czytelna lista dnia (bez siatki godzin).
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -331,482 +646,298 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* TOP BAR */}
+      {/* TOP ACTIONS */}
       <div className="mt-7 flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setView("month")}
-            aria-pressed={view === "month"}
-            style={view === "month" ? pillActive : pillIdle}
-          >
-            Miesi&c
+        <div className="flex items-center gap-2 flex-wrap">
+          <button className="pill" onClick={() => stepDay(-1)} title="Poprzedni dzień">
+            ← Dzień
           </button>
-          <button
-            onClick={() => setView("year")}
-            aria-pressed={view === "year"}
-            style={view === "year" ? pillActive : pillIdle}
-          >
-            Rok
+          <button className="pill" onClick={goToday}>
+            Dziś
+          </button>
+          <button className="pill" onClick={() => stepDay(1)} title="Następny dzień">
+            Dzień →
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button onClick={() => setZoom((z) => clamp(z - 5, ZOOM_MIN, ZOOM_MAX))} title="Oddal" style={roundBtnStyle}>
-            �
+        <div className="flex items-center gap-2 flex-wrap">
+          <button className="pill" onClick={() => openNew(selectedDate)}>
+            ➕ Dodaj wydarzenie
           </button>
-          <button onClick={() => setZoom((z) => clamp(z + 5, ZOOM_MIN, ZOOM_MAX))} title="Przybli|" style={roundBtnStyle}>
-            +
-          </button>
-          <button onClick={() => setZoom(100)} style={pillIdle} title="Reset zoom do 100%">
-            Reset
-          </button>
-
-          <div className="text-sm font-extrabold" style={{ color: "var(--text-muted)" }}>
-            {view === "month" ? (
-              <>
-                {monthLabelPL(year, month)} {year}
-              </>
-            ) : (
-              <>Rok {year}</>
-            )}
-          </div>
         </div>
       </div>
 
-      {/* MONTH */}
-      {view === "month" ? (
-        <section className="mt-5">
-          {/* & MOBILE ONLY (pionowo) */}
-          <div className="md:hidden grid gap-3">
-            {monthDays.map((d) => {
-              const has = d.items.length > 0;
-              return (
-                <button
-                  key={d.date}
-                  onClick={() => openDay(d.date)}
-                  className={[
-                    "ce-daycard",
-                    d.isWeekend ? "ce-daycard--weekend" : "",
-                    d.isToday ? "ce-daycard--today" : "",
-                  ].join(" ")}
-                  style={{ cursor: "pointer", textAlign: "left", outline: "none" }}
-                  title={d.date}
-                >
-                  <div className="ce-dayhead">
-                    <div className="ce-daytitle">
-                      <div className="ce-weekday">{WEEKDAYS_PL[d.weekdayIdx]}</div>
-                      <div className="ce-daynum">{d.day}</div>
-                    </div>
-                    <span className={`ce-badge ${has ? "ce-badge--has" : ""}`}>
-                      {has ? `${d.items.length} spotk.` : "brak"}
-                    </span>
-                  </div>
-
-                  {has ? (
-                    <div className="ce-events">
-                      {d.items.slice(0, 2).map((e) => {
-                        const meta = TYPE_META[e.type];
-                        return (
-                          <div
-                            key={e.id}
-                            className="ce-mini"
-                            style={{
-                              background: meta.bg,
-                              borderColor: meta.border,
-                              color: "rgba(234,255,251,0.95)", // & jasny tekst na mobile
-                            }}
-                          >
-                            <div className="ce-mini__top">
-                              {e.time} �� {meta.label}
-                            </div>
-                            <div className="ce-mini__title">{e.title}</div>
-                          </div>
-                        );
-                      })}
-                      {d.items.length > 2 ? (
-                        <div className="ce-more" style={{ color: "rgba(234,255,251,0.85)" }}>
-                          +{d.items.length - 2} wi"cej��
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </button>
-              );
-            })}
+      {/* LAYOUT */}
+      <section className="layout">
+        {/* SIDE */}
+        <aside className="card">
+          <div className="cardHead">
+            <div>
+              <div style={{ fontWeight: 1000 }}>Nawigacja</div>
+              <div className="muted">Mini miesiąc + Nadchodzące</div>
+            </div>
+            <button className="pill" onClick={goToday} title="Skocz do dziś" style={{ padding: "8px 12px" }}>
+              Dziś
+            </button>
           </div>
 
-          {/* & DESKTOP ONLY (siatka) */}
-          <div className="hidden md:block">
-            {/* weekday header */}
-            <div className="grid grid-cols-7 gap-4 mb-4">
-              {WEEKDAYS_PL.map((w, idx) => {
-                const isWeekend = idx === 5 || idx === 6;
-                return (
-                  <div
-                    key={w}
-                    className="rounded-2xl px-3 py-2 text-center font-extrabold"
-                    style={{
-                      background: isWeekend ? "rgba(245,158,11,0.10)" : "rgba(255,255,255,0.05)",
-                      border: isWeekend ? "1px solid rgba(245,158,11,0.22)" : "1px solid rgba(255,255,255,0.10)",
-                      color: "rgba(234,255,251,0.92)",
-                      fontSize: weekdayHeaderSize,
-                    }}
-                  >
-                    {w}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* days grid */}
-            <div className="grid grid-cols-7 gap-4">
-              {/* leading blanks */}
-              {Array.from({ length: firstDayOffset }).map((_, idx) => (
-                <div
-                  key={`blank-${idx}`}
-                  className="rounded-2xl"
-                  style={{
-                    minHeight: monthCellMinH,
-                    background: "rgba(255,255,255,0.02)",
-                    border: "1px dashed rgba(255,255,255,0.08)",
-                  }}
-                />
-              ))}
-
-              {/* actual days */}
-              {Array.from({ length: daysInMonth }).map((_, i) => {
-                const day = i + 1;
-                const date = `${year}-${pad2(month + 1)}-${pad2(day)}`;
-                const dayEvents = byDate(date);
-                const isToday = date === todayDateStr;
-
-                const colIndex = (firstDayOffset + i) % 7; // 0..6 Mon..Sun
-                const isWeekend = colIndex === 5 || colIndex === 6;
-
-                return (
-                  <button
-                    key={date}
-                    ref={isToday ? todayCellRef : null}
-                    onClick={() => openDay(date)}
-                    className="text-left"
-                    style={{
-                      minHeight: monthCellMinH,
-                      padding: monthCellPad,
-                      borderRadius: 18,
-                      outline: "none",
-                      cursor: "pointer",
-
-                      background: isWeekend ? WEEKEND_BG : DAY_BG,
-                      border: `1px solid ${isWeekend ? WEEKEND_BORDER : DAY_BORDER}`,
-                      boxShadow: isWeekend ? WEEKEND_TOP_GLOW : "none",
-
-                      ...(isToday
-                        ? {
-                            border: "1px solid rgba(45,212,191,0.55)",
-                            boxShadow: "0 0 0 4px rgba(45,212,191,0.12)",
-                          }
-                        : {}),
-                    }}
-                    title={date}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div
-                          className="font-black"
-                          style={{
-                            color: "#0f172a",
-                            fontSize: dayNumberSize,
-                            lineHeight: 1,
-                          }}
-                        >
-                          {day}
-                        </div>
-
-                        {isToday ? (
-                          <span
-                            style={{
-                              width: Math.max(7, Math.round(10 * zoomScale)),
-                              height: Math.max(7, Math.round(10 * zoomScale)),
-                              borderRadius: 999,
-                              background: "rgba(45,212,191,0.85)",
-                              boxShadow: "0 8px 18px rgba(45,212,191,0.30)",
-                              display: "inline-block",
-                            }}
-                            title="Dzisiaj"
-                          />
-                        ) : null}
-                      </div>
-
-                      {dayEvents.length > 0 ? (
-                        <span
-                          className="rounded-full px-3 py-1 font-extrabold"
-                          style={{
-                            background: "rgba(15,23,42,0.06)",
-                            border: "1px solid rgba(15,23,42,0.12)",
-                            color: "rgba(15,23,42,0.70)",
-                            fontSize: Math.max(10, Math.round(12 * zoomScale)),
-                          }}
-                        >
-                          {dayEvents.length}
-                        </span>
-                      ) : null}
-                    </div>
-
-                    <div className="mt-3 flex flex-col gap-2">
-                      {dayEvents.slice(0, 3).map((e) => (
-                        <EventChip key={e.id} e={e} zoom={zoomScale} />
-                      ))}
-
-                      {dayEvents.length > 3 ? (
-                        <div
-                          className="font-bold"
-                          style={{
-                            color: "rgba(15,23,42,0.55)",
-                            fontSize: Math.max(10, Math.round(12 * zoomScale)),
-                          }}
-                        >
-                          +{dayEvents.length - 3} wi"cej��
-                        </div>
-                      ) : null}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      {/* YEAR */}
-      {view === "year" ? (
-        <section className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {[...Array(12)].map((_, m) => {
-            const days = new Date(year, m + 1, 0).getDate();
-            const label = monthLabelPL(year, m);
-
-            const offset = mondayFirstDowIndex(new Date(year, m, 1));
-
-            return (
-              <div
-                key={m}
-                style={{
-                  borderRadius: 18,
-                  background: "rgba(255,255,255,0.96)",
-                  border: "1px solid rgba(15,23,42,0.10)",
-                  padding: 18,
-                }}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-xs font-extrabold uppercase tracking-wide" style={{ color: "rgba(15,23,42,0.60)" }}>
-                      Miesi&c
-                    </div>
-                    <div className="mt-1 font-black" style={{ color: "#0f172a", textTransform: "capitalize" }}>
-                      {label}
-                    </div>
-                  </div>
-                  <div className="text-xs font-extrabold" style={{ color: "rgba(15,23,42,0.60)" }}>
-                    {year}
-                  </div>
+          <div className="sideBody">
+            {/* MINI CAL */}
+            <div className="miniCal">
+              <div className="miniHead">
+                <div className="miniTitle">
+                  {monthLabelPL(anchor.getFullYear(), anchor.getMonth())} {anchor.getFullYear()}
                 </div>
+                <div className="flex gap-2">
+                  <button className="roundBtn" onClick={prevMonth} title="Poprzedni miesiąc">
+                    ←
+                  </button>
+                  <button className="roundBtn" onClick={nextMonth} title="Następny miesiąc">
+                    →
+                  </button>
+                </div>
+              </div>
 
-                <div className="mt-4 grid grid-cols-7 gap-2">
-                  {WEEKDAYS_PL.map((w, idx) => (
+              <div className="miniDays">
+                <div className="miniWeekdays">
+                  {WEEKDAYS_PL.map((w, i) => (
                     <div
-                      key={`${m}-${w}`}
-                      className="text-center font-extrabold"
-                      style={{
-                        fontSize: Math.max(9, Math.round(10 * zoomScale)),
-                        color: idx >= 5 ? "rgba(245,158,11,0.85)" : "rgba(15,23,42,0.55)",
-                      }}
+                      key={w}
+                      className="miniWeekday"
+                      style={i >= 5 ? { color: "rgba(245,158,11,0.85)" } : undefined}
                     >
                       {w}
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-2 grid grid-cols-7 gap-2">
-                  {Array.from({ length: offset }).map((_, idx) => (
-                    <div
-                      key={`yblank-${m}-${idx}`}
-                      style={{
-                        height: 30,
-                        borderRadius: yearDayRadius,
-                        background: "rgba(15,23,42,0.02)",
-                        border: "1px dashed rgba(15,23,42,0.08)",
-                      }}
-                    />
+                <div className="miniGrid">
+                  {Array.from({ length: firstOffset }).map((_, idx) => (
+                    <div key={`mblank-${idx}`} className="miniCell" />
                   ))}
 
-                  {Array.from({ length: days }).map((_, d) => {
-                    const date = `${year}-${pad2(m + 1)}-${pad2(d + 1)}`;
-                    const has = byDate(date).length > 0;
-                    const isToday = date === todayDateStr;
-
-                    const colIndex = (offset + d) % 7;
-                    const isWeekend = colIndex === 5 || colIndex === 6;
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const day = i + 1;
+                    const iso = `${anchor.getFullYear()}-${pad2(anchor.getMonth() + 1)}-${pad2(day)}`;
+                    const isActive = iso === selectedDate;
+                    const count = (eventsByDate.get(iso) ?? []).length;
 
                     return (
                       <button
-                        key={date}
-                        onClick={() => openDay(date)}
-                        style={{
-                          padding: `${yearDayPadY}px 0`,
-                          borderRadius: yearDayRadius,
-                          background: isWeekend ? "rgba(245,158,11,0.06)" : "rgba(15,23,42,0.04)",
-                          border: isWeekend ? "1px solid rgba(245,158,11,0.18)" : "1px solid rgba(15,23,42,0.10)",
-                          color: "rgba(15,23,42,0.86)",
-                          fontSize: Math.max(10, Math.round(12 * zoomScale)),
-                          fontWeight: 900,
-                          cursor: "pointer",
-                          ...(has ? { background: "rgba(45,212,191,0.12)", border: "1px solid rgba(45,212,191,0.25)" } : {}),
-                          ...(isToday ? { background: "rgba(45,212,191,0.16)", border: "1px solid rgba(45,212,191,0.45)" } : {}),
-                        }}
-                        title={date}
+                        key={iso}
+                        className={`miniBtn ${isActive ? "miniBtnActive" : ""}`}
+                        onClick={() => setSelectedDate(iso)}
+                        title={iso}
                       >
-                        {d + 1}
+                        <span>{day}</span>
+                        {count ? <span className="miniDot" title={`${count} wydarzeń`} /> : null}
                       </button>
                     );
                   })}
                 </div>
               </div>
-            );
-          })}
+            </div>
+
+            {/* UPCOMING */}
+            <div className="upcomingBox">
+              <div className="upcomingHead">
+                <div style={{ fontWeight: 1000 }}>Następne</div>
+                <div style={{ fontSize: 12, fontWeight: 900, opacity: 0.85 }}>{upcoming.length ? `${upcoming.length}` : "—"}</div>
+              </div>
+
+              <div className="upcomingList">
+                {upcoming.length === 0 ? (
+                  <div style={{ fontSize: 12, fontWeight: 900, color: "rgba(15,23,42,0.65)" }}>
+                    Brak nadchodzących wydarzeń.
+                  </div>
+                ) : (
+                  upcoming.map((e) => {
+                    const meta = TYPE_META[e.type];
+                    const datePretty = parseISODate(e.date).toLocaleDateString("pl-PL", { month: "short", day: "2-digit" });
+
+                    return (
+                      <button
+                        key={e.id}
+                        className="upItem"
+                        onClick={() => {
+                          setSelectedDate(e.date);
+                          openEdit(e);
+                        }}
+                        title={`${e.date} ${e.time}`}
+                      >
+                        <div className="upTop">
+                          <span>
+                            {datePretty} • {e.time}
+                          </span>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                            <span style={{ width: 8, height: 8, borderRadius: 999, background: meta.dot }} />
+                            {meta.label}
+                          </span>
+                        </div>
+                        <div className="upTitle">{e.title}</div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        {/* RIGHT: AGENDA */}
+        <section className="card">
+          <div className="cardHead">
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontWeight: 1000 }}>{selectedPretty}</div>
+              <div className="muted">
+                {dayEventsAll.length ? `${dayEventsAll.length} wydarzeń w dniu` : "Brak wydarzeń w tym dniu"}
+                {filterType !== "all" ? ` • filtr: ${TYPE_META[filterType].label}` : ""}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button className="pill" onClick={() => openNew(selectedDate)} style={{ padding: "8px 12px" }}>
+                ➕ Dodaj
+              </button>
+              <button className="roundBtn" onClick={() => stepDay(-1)} title="Poprzedni dzień">
+                ←
+              </button>
+              <button className="roundBtn" onClick={() => stepDay(1)} title="Następny dzień">
+                →
+              </button>
+            </div>
+          </div>
+
+          <div className="rightBody">
+            <div className="agendaTools">
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                <label style={{ fontSize: 12, fontWeight: 1000, color: "rgba(15,23,42,0.65)" }}>Filtr typu</label>
+                <select className="select" value={filterType} onChange={(e) => setFilterType(e.target.value as any)}>
+                  <option value="all">Wszystkie</option>
+                  <option value="pozysk">Pozysk</option>
+                  <option value="prezentacja">Prezentacja</option>
+                  <option value="umowa">Umowa</option>
+                  <option value="inne">Inne</option>
+                </select>
+              </div>
+
+              <button className="pill" onClick={() => openNew(selectedDate)} style={{ background: "rgba(15,23,42,0.06)", border: "1px solid rgba(15,23,42,0.10)", color: "rgba(15,23,42,0.86)" }}>
+                Szybko dodaj
+              </button>
+            </div>
+
+            <div className="agendaList">
+              {dayEvents.length === 0 ? (
+                <div className="emptyBox">
+                  {filterType === "all"
+                    ? "Brak wydarzeń w tym dniu. Kliknij „Dodaj” aby utworzyć nowe."
+                    : "Brak wydarzeń dla tego filtra. Zmień filtr na „Wszystkie” albo dodaj nowe."}
+                </div>
+              ) : (
+                dayEvents.map((e) => {
+                  const meta = TYPE_META[e.type];
+                  const dur = e.durationMin ?? DEFAULT_DURATION;
+
+                  return (
+                    <div key={e.id} className="eventRow" onClick={() => openEdit(e)} title="Kliknij, aby edytować">
+                      <div className="eventTopLine">
+                        <div className="leftTop">
+                          <span className="dot" style={{ background: meta.dot }} />
+                          <span className="time">
+                            {e.time} • {dur}m
+                          </span>
+                          <span className="title">{e.title}</span>
+                        </div>
+
+                        <span
+                          className="pillType"
+                          style={{
+                            borderColor: meta.pillBorder,
+                            background: meta.pillBg,
+                            color: meta.pillText,
+                          }}
+                        >
+                          {meta.label}
+                        </span>
+                      </div>
+
+                      {e.note ? <div className="note">{e.note}</div> : null}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
         </section>
-      ) : null}
+      </section>
 
       {/* MODAL */}
-      {selectedDate ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.70)" }}
-          onClick={() => setSelectedDate(null)}
-        >
-          <div
-            className="ce-modal"
-            style={{
-              width: "100%",
-              maxWidth: 720,
-              borderRadius: 18,
-              background: "rgba(255,255,255,0.98)",
-              border: "1px solid rgba(15,23,42,0.10)",
-              padding: 22,
-              maxHeight: "calc(100vh - 24px)",
-              overflowY: "auto",
-              WebkitOverflowScrolling: "touch",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
+      {isModalOpen ? (
+        <div className="modalBackdrop" onClick={closeModal}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-xs font-extrabold uppercase tracking-wide" style={{ color: "rgba(15,23,42,0.60)" }}>
-                  DzieD
+                  {editing ? "Edytuj" : "Dodaj"} — {form.date}
                 </div>
-                <h2 className="mt-1 text-xl font-black" style={{ color: "#0f172a" }}>
-                  Z {selectedDate}
-                </h2>
+                <div className="mt-1 text-xl font-black" style={{ color: "#0f172a" }}>
+                  {editing ? "Wydarzenie" : "Nowe wydarzenie"}
+                </div>
               </div>
 
               <button
-                className="rounded-xl px-3 py-2 text-xs font-extrabold"
+                className="pill"
+                onClick={closeModal}
                 style={{
                   background: "rgba(15,23,42,0.06)",
                   border: "1px solid rgba(15,23,42,0.12)",
                   color: "rgba(15,23,42,0.78)",
                 }}
-                onClick={() => setSelectedDate(null)}
               >
-                " Zamknij
+                ✕ Zamknij
               </button>
             </div>
 
-            {byDate(selectedDate).length > 0 ? (
-              <>
-                <div className="mt-5 text-sm font-extrabold" style={{ color: "rgba(15,23,42,0.75)" }}>
-                  Zaplanowane spotkania
+            {editing ? (
+              <div
+                className="mt-4 rounded-2xl p-4"
+                style={{ background: "rgba(15,23,42,0.04)", border: "1px solid rgba(15,23,42,0.10)" }}
+              >
+                <div style={{ fontWeight: 1000, color: "rgba(15,23,42,0.80)" }}>Akcje</div>
+                <div className="mt-3 flex gap-2 flex-wrap">
+                  <button className="btnDanger" onClick={() => deleteEvent(editing.id)}>
+                    🗑 Usuń
+                  </button>
                 </div>
-
-                <div className="mt-3 flex flex-col gap-3">
-                  {byDate(selectedDate).map((e) => (
-                    <div
-                      key={e.id}
-                      className="rounded-2xl p-4"
-                      style={{
-                        background: "rgba(15,23,42,0.04)",
-                        border: "1px solid rgba(15,23,42,0.10)",
-                      }}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-sm font-black" style={{ color: "#0f172a" }}>
-                            {e.time}  {e.title}
-                          </div>
-                          <div className="mt-1 text-xs" style={{ color: "rgba(15,23,42,0.65)" }}>
-                            {TYPE_META[e.type].label}
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <button
-                            className="rounded-xl px-3 py-2 text-xs font-extrabold"
-                            style={{
-                              background: "rgba(15,23,42,0.06)",
-                              border: "1px solid rgba(15,23,42,0.12)",
-                              color: "rgba(15,23,42,0.80)",
-                            }}
-                            onClick={() => editEvent(e)}
-                          >
-                            <��<�
-                          </button>
-                          <button
-                            className="rounded-xl px-3 py-2 text-xs font-extrabold"
-                            style={{
-                              background: "rgba(239,68,68,0.10)",
-                              border: "1px solid rgba(239,68,68,0.22)",
-                              color: "rgba(185,28,28,0.95)",
-                            }}
-                            onClick={() => deleteEvent(e.id)}
-                          >
-                            =�
-                          </button>
-                        </div>
-                      </div>
-
-                      {e.note ? (
-                        <div className="mt-3 text-sm" style={{ color: "rgba(15,23,42,0.78)" }}>
-                          {e.note}
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </>
+              </div>
             ) : null}
 
-            <div className="my-6 h-px w-full" style={{ background: "rgba(15,23,42,0.10)" }} />
-
-            <div className="text-sm font-extrabold" style={{ color: "rgba(15,23,42,0.75)" }}>
-              {editing ? "Edytuj spotkanie" : "Dodaj nowe spotkanie"}
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="label-light">" Godzina</label>
+                <label className="label">Data</label>
+                <input className="input" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+              </div>
+
+              <div>
+                <label className="label">Godzina</label>
+                <input className="input" type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} />
+              </div>
+
+              <div>
+                <label className="label">Długość (min)</label>
                 <input
-                  className="input-light"
-                  type="time"
-                  value={form.time}
-                  onChange={(e) => setForm({ ...form, time: e.target.value })}
+                  className="input"
+                  type="number"
+                  min={15}
+                  step={15}
+                  value={Number(form.durationMin ?? DEFAULT_DURATION)}
+                  onChange={(e) => setForm({ ...form, durationMin: Number(e.target.value) })}
                 />
               </div>
 
               <div>
-                <label className="label-light">{ Typ</label>
-                <select
-                  className="input-light"
-                  value={form.type}
-                  onChange={(e) => setForm({ ...form, type: e.target.value as EventType })}
-                >
+                <label className="label">Typ</label>
+                <select className="input" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as EventType })}>
                   <option value="pozysk">Pozysk</option>
                   <option value="prezentacja">Prezentacja</option>
                   <option value="umowa">Umowa</option>
@@ -815,73 +946,27 @@ export default function CalendarPage() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="label-light"><��<� TytuB</label>
-                <input
-                  className="input-light"
-                  placeholder="np. Prezentacja mieszkania"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                />
+                <label className="label">Tytuł</label>
+                <input className="input" placeholder="np. Prezentacja mieszkania" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
               </div>
 
               <div className="md:col-span-2">
-                <label className="label-light">e Notatka</label>
+                <label className="label">Notatka</label>
                 <textarea
-                  className="input-light h-28 resize-y"
-                  placeholder="Adres, klient, szczeg�By..."
+                  className="input"
+                  style={{ height: 120, resize: "vertical" }}
+                  placeholder="Adres, klient, szczegóły…"
                   value={form.note}
                   onChange={(e) => setForm({ ...form, note: e.target.value })}
                 />
               </div>
             </div>
 
-            <button className="btn-mint mt-5 w-full" onClick={saveEvent}>
-              {editing ? "> Zapisz zmiany" : "~" Dodaj spotkanie"}
-            </button>
-
-            <style jsx>{`
-              .label-light {
-                font-size: 12px;
-                font-weight: 900;
-                margin-bottom: 6px;
-                display: block;
-                color: rgba(15, 23, 42, 0.68);
-                letter-spacing: 0.2px;
-              }
-              .input-light {
-                width: 100%;
-                padding: 12px 12px;
-                border-radius: 14px;
-                border: 1px solid rgba(15, 23, 42, 0.12);
-                background: rgba(15, 23, 42, 0.03);
-                color: #0f172a;
-                outline: none;
-              }
-              .input-light:focus {
-                border-color: rgba(45, 212, 191, 0.55);
-                box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.16);
-              }
-              .btn-mint {
-                border-radius: 14px;
-                padding: 12px 14px;
-                font-weight: 900;
-                border: 1px solid rgba(45, 212, 191, 0.35);
-                background: rgba(45, 212, 191, 0.14);
-                color: #0f172a;
-                cursor: pointer;
-              }
-              .btn-mint:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 14px 36px rgba(45, 212, 191, 0.18);
-              }
-              @media (max-width: 720px) {
-                .ce-modal {
-                  padding: 14px !important;
-                  border-radius: 16px !important;
-                  max-width: 560px !important;
-                }
-              }
-            `}</style>
+            <div className="mt-5 flex gap-2 flex-wrap">
+              <button className="btnPrimary" onClick={saveEvent} style={{ flex: 1, minWidth: 220 }}>
+                {editing ? "✅ Zapisz zmiany" : "➕ Dodaj wydarzenie"}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
@@ -889,65 +974,9 @@ export default function CalendarPage() {
   );
 }
 
-/* ====== small UI pieces ====== */
-
-function EventChip({ e, zoom }: { e: CalendarEvent; zoom: number }) {
-  const meta = TYPE_META[e.type];
-
-  const timeSize = Math.max(9, Math.round(12 * zoom));
-  const titleSize = Math.max(10, Math.round(14 * zoom));
-
-  return (
-    <div
-      className="rounded-xl"
-      style={{
-        padding: `${Math.max(7, Math.round(10 * zoom))}px ${Math.max(9, Math.round(12 * zoom))}px`,
-        background: meta.bg,
-        border: `1px solid ${meta.border}`,
-        color: meta.text,
-        boxShadow: "0 10px 22px rgba(0,0,0,0.08)",
-      }}
-    >
-      <div className="font-extrabold" style={{ opacity: 0.88, fontSize: timeSize }}>
-        {e.time} �� {meta.label}
-      </div>
-      <div className="font-black" style={{ fontSize: titleSize }}>
-        {e.title}
-      </div>
-    </div>
-  );
-}
-
-const pillActive: React.CSSProperties = {
-  background: "rgba(45,212,191,0.14)",
-  border: "1px solid rgba(45,212,191,0.35)",
-  color: "rgba(234,255,251,0.95)",
-  borderRadius: 999,
-  padding: "10px 14px",
-  fontWeight: 900,
-  cursor: "pointer",
-};
-
-const pillIdle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.10)",
-  color: "var(--text-main)",
-  borderRadius: 999,
-  padding: "10px 14px",
-  fontWeight: 900,
-  cursor: "pointer",
-};
-
-const roundBtnStyle: React.CSSProperties = {
-  width: 38,
-  height: 38,
-  borderRadius: 999,
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.10)",
-  color: "var(--text-main)",
-  fontWeight: 900,
-  cursor: "pointer",
-};
+/* =========================
+   KPI
+========================= */
 
 function Kpi({
   label,

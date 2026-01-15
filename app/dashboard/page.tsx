@@ -1,5 +1,6 @@
-?"use client";
+﻿"use client";
 
+import * as React from "react";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -15,35 +16,67 @@ export default function DashboardPage() {
               color: "rgba(234,255,251,0.92)",
             }}
           >
-            <span style={{ color: "var(--accent)" }}>�9</span> Centrum dowodzenia
+            <span style={{ color: "var(--accent)" }}>🧭</span> Centrum dowodzenia
           </div>
 
           <h1
             className="mt-3 text-3xl font-extrabold tracking-tight"
             style={{ color: "var(--text-main)" }}
           >
-            =� 9� Dashboard
+            📊 Dashboard
           </h1>
 
           <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-            Szybki dost��p do modu� a�Bw. Wszystko w jednym miejscu.
+            Szybki dostęp do modułów. Wszystko w jednym miejscu.
           </p>
         </div>
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <Tile title="=� & Kalendarz" desc="Spotkania, przypomnienia, follow-up." href="/calendar" />
-        <Tile title="��: Pozyski" desc="Pozyskiwanie ofert i w� aa� _cicieli." href="/prospects" />
-        <Tile title="9� Nieruchomo� _ci" desc="Baza ofert, zdj��cia, parametry." href="/properties" />
-        <Tile title="�� AI: Analiza" desc="AI: analiza i porz&dek zdj�� �." href="/analyzed" />
-        <Tile title="�� AI: Wycena" desc="Szybka wycena nieruchomo� _ci." href="/valuation" />
-        <Tile title="=� 9> Leady" desc="Leady, statusy, kontakty." href="/leads" />
+        <Tile
+          title="📅 Kalendarz"
+          desc="Spotkania, przypomnienia, follow-up."
+          href="/calendar"
+        />
+        <Tile
+          title="🎯 Pozyski"
+          desc="Pozyskiwanie ofert i właścicieli."
+          href="/prospects"
+        />
+        <Tile
+          title="🏠 Nieruchomości"
+          desc="Baza ofert, zdjęcia, parametry."
+          href="/properties"
+        />
+        <Tile
+          title="🤖 AI: Analiza"
+          desc="AI: analiza i porządek zdjęć."
+          href="/analyzed"
+        />
+        <Tile
+          title="💸 AI: Wycena"
+          desc="Szybka wycena nieruchomości."
+          href="/valuation"
+        />
+        <Tile
+          title="📞 Leady"
+          desc="Leady, statusy, kontakty."
+          href="/leads"
+        />
       </div>
     </main>
   );
 }
 
-function Tile({ title, desc, href }: { title: string; desc: string; href: string }) {
+function Tile({
+  title,
+  desc,
+  href,
+}: {
+  title: string;
+  desc: string;
+  href: string;
+}) {
   return (
     <Link
       href={href}
@@ -62,13 +95,17 @@ function Tile({ title, desc, href }: { title: string; desc: string; href: string
             border: "1px solid rgba(45,212,191,0.35)",
             background: "rgba(45,212,191,0.12)",
             color: "rgba(234,255,251,0.95)",
+            whiteSpace: "nowrap",
           }}
         >
-          Otw�rz  �
+          Otwórz →
         </div>
       </div>
 
-      <div className="mt-5 h-px w-full" style={{ background: "rgba(255,255,255,0.10)" }} />
+      <div
+        className="mt-5 h-px w-full"
+        style={{ background: "rgba(255,255,255,0.10)" }}
+      />
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Tag>CRM</Tag>

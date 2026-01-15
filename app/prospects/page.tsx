@@ -1,4 +1,4 @@
-?"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -20,13 +20,13 @@ export default function ProspectsPage() {
     const saved = localStorage.getItem("prospects");
     if (saved) {
       const parsed = JSON.parse(saved).map((p: any) => ({
-        id: p.id,
+        id: typeof p.id === "number" ? p.id : Number(p.id),
         name: p.name || "",
         phone: p.phone || "",
         note: p.note || "",
         followUpDate: p.followUpDate || "",
         meetingDate: p.meetingDate || "",
-        source: p.source || "OgBoszenie",
+        source: p.source || "Ogłoszenie",
         createdAt: p.createdAt || new Date().toISOString(),
       }));
       setProspects(parsed);
@@ -40,7 +40,7 @@ export default function ProspectsPage() {
   };
 
   const saveFollowUp = (p: Prospect) => {
-    if (!p.followUpDate) return alert("Wybierz dat" follow-upu");
+    if (!p.followUpDate) return alert("Wybierz datę follow-upu");
 
     const followups = JSON.parse(localStorage.getItem("followups") || "[]");
 
@@ -53,11 +53,11 @@ export default function ProspectsPage() {
     });
 
     localStorage.setItem("followups", JSON.stringify(followups));
-    alert("& Follow-up zapisany");
+    alert("✅ Follow-up zapisany");
   };
 
   const saveMeeting = (p: Prospect) => {
-    if (!p.meetingDate) return alert("Wybierz dat" spotkania");
+    if (!p.meetingDate) return alert("Wybierz datę spotkania");
 
     const meetings = JSON.parse(localStorage.getItem("meetings") || "[]");
 
@@ -72,7 +72,7 @@ export default function ProspectsPage() {
     });
 
     localStorage.setItem("meetings", JSON.stringify(meetings));
-    alert("& Spotkanie dodane do kalendarza");
+    alert("✅ Spotkanie dodane do kalendarza");
   };
 
   const stats = useMemo(() => {
@@ -95,12 +95,16 @@ export default function ProspectsPage() {
               color: "rgba(234,255,251,0.92)",
             }}
           >
-            <span style={{ color: "var(--accent)" }}><�</span> Pozyski / CRM
+            <span style={{ color: "var(--accent)" }}>⟡</span> Pozyski / CRM
           </div>
 
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-main)" }}>
-            { Pozyski
+          <h1
+            className="mt-3 text-3xl font-extrabold tracking-tight"
+            style={{ color: "var(--text-main)" }}
+          >
+            Pozyski
           </h1>
+
           <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
             Notatki, follow-upy i spotkania pozyskowe w jednym miejscu.
           </p>
@@ -115,9 +119,12 @@ export default function ProspectsPage() {
 
       {/* EMPTY */}
       {prospects.length === 0 ? (
-        <section className="mt-7 rounded-2xl p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border-soft)" }}>
+        <section
+          className="mt-7 rounded-2xl p-6"
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border-soft)" }}
+        >
           <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            Brak pozysk�w. Dodaj pierwszego (np. z moduBu �~Market�e albo r"cznie).
+            Brak pozysków. Dodaj pierwszego (np. z modułu „Market” albo ręcznie).
           </p>
         </section>
       ) : null}
@@ -125,29 +132,40 @@ export default function ProspectsPage() {
       {/* LIST */}
       <section className="mt-7 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {prospects.map((p) => (
-          <div key={p.id} className="surface-light p-6">
+          <div
+            key={p.id}
+            className="surface-light p-6"
+            style={{ color: "var(--text-main)" }}
+          >
             {/* top line */}
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-xs font-extrabold uppercase tracking-wide" style={{ color: "rgba(15,23,42,0.60)" }}>
-                  9r�dBo
+                <div
+                  className="text-xs font-extrabold uppercase tracking-wide"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  Źródło
                 </div>
-                <div className="mt-1 text-sm font-black" style={{ color: "#0f172a" }}>
+                <div className="mt-1 text-sm font-black" style={{ color: "var(--text-main)" }}>
                   {p.source || ""}
                 </div>
               </div>
 
               <div className="flex gap-2 flex-wrap justify-end">
-                {(p.followUpDate ?? "").trim() ? <Badge tone="mint"> follow-up</Badge> : <Badge tone="neutral">brak follow-up</Badge>}
-                {(p.meetingDate ?? "").trim() ? <Badge tone="blue">& spotkanie</Badge> : null}
+                {(p.followUpDate ?? "").trim() ? (
+                  <Badge tone="mint">follow-up</Badge>
+                ) : (
+                  <Badge tone="neutral">brak follow-up</Badge>
+                )}
+                {(p.meetingDate ?? "").trim() ? <Badge tone="blue">spotkanie</Badge> : null}
               </div>
             </div>
 
-            <div className="mt-5 h-px w-full" style={{ background: "rgba(15,23,42,0.10)" }} />
+            <div className="mt-5 h-px w-full" style={{ background: "rgba(255,255,255,0.10)" }} />
 
             <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="md:col-span-2">
-                <label className="label-light">imi" i nazwisko</label>
+                <label className="label-light">Imię i nazwisko</label>
                 <input
                   className="input-light"
                   placeholder="Jan Kowalski"
@@ -170,14 +188,14 @@ export default function ProspectsPage() {
                 <label className="label-light">Notatka</label>
                 <textarea
                   className="input-light h-24 resize-y"
-                  placeholder="Szczeg�By rozmowy��"
+                  placeholder="Szczegóły rozmowy…"
                   value={p.note}
                   onChange={(e) => updateProspect(p.id, { note: e.target.value })}
                 />
               </div>
 
               <div>
-                <label className="label-light"> Follow-up</label>
+                <label className="label-light">Follow-up</label>
                 <input
                   className="input-light"
                   type="date"
@@ -190,7 +208,7 @@ export default function ProspectsPage() {
               </div>
 
               <div>
-                <label className="label-light">& Spotkanie pozyskowe</label>
+                <label className="label-light">Spotkanie pozyskowe</label>
                 <input
                   className="input-light"
                   type="datetime-local"
@@ -203,10 +221,10 @@ export default function ProspectsPage() {
               </div>
             </div>
 
-            <div className="mt-5 text-xs" style={{ color: "rgba(15,23,42,0.60)" }}>
+            <div className="mt-5 text-xs" style={{ color: "var(--text-muted)" }}>
               Dodano:{" "}
-              <span style={{ color: "rgba(15,23,42,0.80)", fontWeight: 800 }}>
-                {new Date(p.createdAt).toLocaleString()}
+              <span style={{ color: "var(--text-main)", fontWeight: 800 }}>
+                {new Date(p.createdAt).toLocaleString("pl-PL")}
               </span>
             </div>
 
@@ -216,23 +234,23 @@ export default function ProspectsPage() {
                 font-weight: 900;
                 margin-bottom: 6px;
                 display: block;
-                color: rgba(15, 23, 42, 0.68);
+                color: var(--text-muted);
                 letter-spacing: 0.2px;
               }
               .input-light {
                 width: 100%;
                 padding: 12px 12px;
                 border-radius: 14px;
-                border: 1px solid rgba(15, 23, 42, 0.12);
-                background: rgba(15, 23, 42, 0.03);
-                color: #0f172a;
+                border: 1px solid var(--border-soft);
+                background: rgba(255, 255, 255, 0.04);
+                color: var(--text-main);
                 outline: none;
                 transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
               }
               .input-light:focus {
                 border-color: rgba(45, 212, 191, 0.55);
-                box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.16);
-                background: rgba(15, 23, 42, 0.035);
+                box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.12);
+                background: rgba(255, 255, 255, 0.05);
               }
               .btn-mint {
                 border-radius: 14px;
@@ -240,7 +258,7 @@ export default function ProspectsPage() {
                 font-weight: 900;
                 border: 1px solid rgba(45, 212, 191, 0.35);
                 background: rgba(45, 212, 191, 0.12);
-                color: #0f172a;
+                color: rgba(234, 255, 251, 0.95);
                 cursor: pointer;
                 transition: transform 0.15s ease, box-shadow 0.15s ease;
               }
@@ -252,9 +270,9 @@ export default function ProspectsPage() {
                 border-radius: 14px;
                 padding: 10px 14px;
                 font-weight: 900;
-                border: 1px solid rgba(15, 23, 42, 0.16);
-                background: rgba(15, 23, 42, 0.92);
-                color: #fff;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                background: rgba(255, 255, 255, 0.06);
+                color: var(--text-main);
                 cursor: pointer;
                 transition: transform 0.15s ease, box-shadow 0.15s ease;
               }
@@ -307,27 +325,36 @@ function Kpi({
   );
 }
 
-function Badge({ children, tone }: { children: React.ReactNode; tone: "mint" | "blue" | "neutral" }) {
+function Badge({
+  children,
+  tone,
+}: {
+  children: React.ReactNode;
+  tone: "mint" | "blue" | "neutral";
+}) {
   const map: Record<string, React.CSSProperties> = {
     mint: {
       border: "1px solid rgba(45,212,191,0.35)",
       background: "rgba(45,212,191,0.10)",
-      color: "#0f172a",
+      color: "rgba(234,255,251,0.95)",
     },
     blue: {
       border: "1px solid rgba(29,78,216,0.30)",
       background: "rgba(29,78,216,0.10)",
-      color: "#0f172a",
+      color: "rgba(224,232,255,0.95)",
     },
     neutral: {
-      border: "1px solid rgba(15,23,42,0.12)",
-      background: "rgba(15,23,42,0.04)",
-      color: "rgba(15,23,42,0.72)",
+      border: "1px solid rgba(255,255,255,0.14)",
+      background: "rgba(255,255,255,0.06)",
+      color: "rgba(234,255,251,0.88)",
     },
   };
 
   return (
-    <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold" style={map[tone]}>
+    <span
+      className="inline-flex items-center rounded-full px-3 py-1 text-xs font-extrabold"
+      style={map[tone]}
+    >
       {children}
     </span>
   );

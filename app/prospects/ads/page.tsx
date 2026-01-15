@@ -1,4 +1,4 @@
-?"use client";
+"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FONT_LIBRARY, FONT_VARS_CLASSNAME } from "./fonts";
@@ -115,7 +115,7 @@ async function downloadPngFromSvg(svg: string, filename: string, width: number, 
 
   await new Promise<void>((resolve, reject) => {
     img.onload = () => resolve();
-    img.onerror = () => reject(new Error("Nie uda� ao si�� za� aadowa � SVG do konwersji."));
+    img.onerror = () => reject(new Error("Nie udało się załadować SVG do konwersji."));
     img.src = url;
   });
 
@@ -168,7 +168,7 @@ const SWATCHES = [
 /* ================= STYLE PRESETS ================= */
 
 function preset(style: StylePresetKey) {
-  // Zasada: premium = mniej element�Bw + lepsze proporcje + mocny typograficzny tytu� a + czytelny CTA
+  // Zasada: premium = mniej elementów + lepsze proporcje + mocny tytuł + czytelny CTA
   if (style === "luxury") {
     return {
       label: "Luxury (Gold/Black)",
@@ -272,7 +272,7 @@ function defaultLayers(format: Format): Layer[] {
     z: baseZ + 1,
     visible: true,
     locked: false,
-    text: "Twoje miasto ��˘ Agent premium",
+    text: "Twoje miasto • Agent premium",
     fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto",
     fontSize: 24,
     fontWeight: 900,
@@ -288,7 +288,7 @@ function defaultLayers(format: Format): Layer[] {
   const title: TextLayer = {
     id: uid("txt"),
     type: "text",
-    name: "Tytu� a",
+    name: "Tytuł",
     x: 150,
     y: format === "square" ? 290 : 380,
     w: 820,
@@ -298,7 +298,7 @@ function defaultLayers(format: Format): Layer[] {
     z: baseZ + 2,
     visible: true,
     locked: false,
-    text: "Bezp� aatna wycena\nnieruchomo� _ci",
+    text: "Bezpłatna wycena\nnieruchomości",
     fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto",
     fontSize: format === "square" ? 86 : 96,
     fontWeight: 900,
@@ -321,7 +321,7 @@ function defaultLayers(format: Format): Layer[] {
     z: baseZ + 3,
     visible: true,
     locked: false,
-    text: "Bezp� aatna wycena + plan sprzeda���y\n(bez zobowi&za�)",
+    text: "Bezpłatna wycena + plan sprzedaży\n(bez zobowiązań)",
     fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto",
     fontSize: 34,
     fontWeight: 850,
@@ -370,7 +370,7 @@ function defaultLayers(format: Format): Layer[] {
     z: baseZ + 5,
     visible: true,
     locked: false,
-    text: "Pawe� a ��˘ Agent nieruchomo� _ci\n=� 9> 500 600 700\n/prospects/form",
+    text: "Paweł • Agent nieruchomości\n📞 500 600 700\n/prospects/form",
     fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto",
     fontSize: 24,
     fontWeight: 850,
@@ -388,25 +388,18 @@ function defaultLayers(format: Format): Layer[] {
 function applyPresetToDesign(style: StylePresetKey, format: Format, prevLayers: Layer[]) {
   const P = preset(style);
 
-  // helper: find by name heuristics
   const byName = (n: string) => prevLayers.find((l) => l.name.toLowerCase().includes(n));
 
   const card = byName("karta") as BoxLayer | undefined;
   const badge = byName("badge") as PillLayer | undefined;
-  const title = byName("tytu� a") as TextLayer | undefined;
+  const title = byName("tytuł") as TextLayer | undefined;
   const hook = byName("hook") as TextLayer | undefined;
   const cta = byName("cta") as PillLayer | undefined;
   const footer = byName("stopka") as TextLayer | undefined;
 
   const next = prevLayers.map((l) => {
-    // global mild polish: roundings etc stay
     if (l.type === "box" && l.id === card?.id) {
-      return {
-        ...l,
-        bg: P.cardBg,
-        border: P.cardBorder,
-        blur: style === "editorial" ? 8 : 10,
-      } as BoxLayer;
+      return { ...l, bg: P.cardBg, border: P.cardBorder, blur: style === "editorial" ? 8 : 10 } as BoxLayer;
     }
 
     if (l.type === "pill" && (l.id === badge?.id || l.id === cta?.id)) {
@@ -436,7 +429,6 @@ function applyPresetToDesign(style: StylePresetKey, format: Format, prevLayers: 
     return l;
   });
 
-  // Adjust title size slightly for editorial
   const out = next.map((l) => {
     if (l.type === "text" && l.id === title?.id) {
       return {
@@ -477,7 +469,6 @@ function exportSvg(args: { format: Format; bg: BgState; layers: Layer[]; bgHex: 
       <rect width="${W}" height="${H}" fill="rgba(0,0,0,${clamp(bg.dim, 0, 0.85)})"/>
     `;
   } else {
-    // fallback gradient-ish
     bgBlock = `
       <rect width="${W}" height="${H}" fill="${bgHex}"/>
       <rect width="${W}" height="${H}" fill="rgba(0,0,0,${clamp(bg.dim, 0, 0.85)})"/>
@@ -584,10 +575,14 @@ function ColorPicker({
   onChange: (v: string) => void;
   helper?: string;
 }) {
-  // value can be rgba() �� input[type=color] wants hex, so we keep text input + swatches.
   return (
     <div>
-      <label style={{ fontSize: 12, fontWeight: 900, marginBottom: 6, display: "block", color: "var(--text-muted)" }}>{label}</label>
+      {label ? (
+        <label style={{ fontSize: 12, fontWeight: 900, marginBottom: 6, display: "block", color: "var(--text-muted)" }}>
+          {label}
+        </label>
+      ) : null}
+
       <input
         style={{
           width: "100%",
@@ -626,18 +621,13 @@ function ColorPicker({
   );
 }
 
-function FontSelect({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
+function FontSelect({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <label style={{ fontSize: 12, fontWeight: 900, marginBottom: 6, display: "block", color: "var(--text-muted)" }}>{label}</label>
+      <label style={{ fontSize: 12, fontWeight: 900, marginBottom: 6, display: "block", color: "var(--text-muted)" }}>
+        {label}
+      </label>
+
       <select
         className="input"
         style={{
@@ -658,7 +648,11 @@ function FontSelect({
           </option>
         ))}
       </select>
-      <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>Podgl&d: <span style={{ fontFamily: value, color: "rgba(234,255,251,0.92)" }}>Bezp� aatna wycena</span></div>
+
+      <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>
+        Podgląd:{" "}
+        <span style={{ fontFamily: value, color: "rgba(234,255,251,0.92)" }}>Bezpłatna wycena</span>
+      </div>
     </div>
   );
 }
@@ -667,7 +661,6 @@ function FontSelect({
 
 export default function ProspectsAdsPage() {
   const [format, setFormat] = useState<Format>("square");
-
   const [styleKey, setStyleKey] = useState<StylePresetKey>("luxury");
 
   const [bgHex, setBgHex] = useState("#0B0B0B");
@@ -717,19 +710,12 @@ export default function ProspectsAdsPage() {
     try {
       localStorage.setItem(
         "pros_ads_editor_v2",
-        JSON.stringify({
-          format,
-          styleKey,
-          bgHex,
-          bg,
-          layers,
-          activeId,
-        })
+        JSON.stringify({ format, styleKey, bgHex, bg, layers, activeId })
       );
     } catch {}
   }, [format, styleKey, bgHex, bg, layers, activeId]);
 
-  // clamp y on format change
+  // clamp on format change
   useEffect(() => {
     setLayers((prev) =>
       prev.map((l) => ({
@@ -741,7 +727,6 @@ export default function ProspectsAdsPage() {
   }, [format]);
 
   const active = useMemo(() => layers.find((l) => l.id === activeId) || null, [layers, activeId]);
-
   const sortedLayers = useMemo(() => layers.slice().sort((a, b) => (b.z ?? 0) - (a.z ?? 0)), [layers]);
 
   const exported = useMemo(() => exportSvg({ format, bg, layers, bgHex }), [format, bg, layers, bgHex]);
@@ -749,9 +734,9 @@ export default function ProspectsAdsPage() {
   const copy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      alert("Skopiowano &");
+      alert("Skopiowano ✅");
     } catch {
-      alert("Nie uda� ao si�� skopiowa �.");
+      alert("Nie udało się skopiować.");
     }
   };
 
@@ -759,26 +744,18 @@ export default function ProspectsAdsPage() {
     const dataUrl = await new Promise<string>((resolve, reject) => {
       const r = new FileReader();
       r.onload = () => resolve(String(r.result || ""));
-      r.onerror = () => reject(new Error("Nie uda� ao si�� wczyta � pliku."));
+      r.onerror = () => reject(new Error("Nie udało się wczytać pliku."));
       r.readAsDataURL(file);
     });
 
     const dims = await new Promise<{ w: number; h: number }>((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve({ w: img.naturalWidth || img.width, h: img.naturalHeight || img.height });
-      img.onerror = () => reject(new Error("Nie uda� ao si�� odczyta � obrazu."));
+      img.onerror = () => reject(new Error("Nie udało się odczytać obrazu."));
       img.src = dataUrl;
     });
 
-    setBg((prev) => ({
-      ...prev,
-      dataUrl,
-      iw: dims.w,
-      ih: dims.h,
-      scale: 1,
-      offsetX: 0,
-      offsetY: 0,
-    }));
+    setBg((prev) => ({ ...prev, dataUrl, iw: dims.w, ih: dims.h, scale: 1, offsetX: 0, offsetY: 0 }));
   };
 
   const addText = () => {
@@ -917,11 +894,10 @@ export default function ProspectsAdsPage() {
     if (layer.locked) return;
     setActiveId(layer.id);
 
-    const p = { x: e.clientX, y: e.clientY };
     dragRef.current = {
       id: layer.id,
-      startX: p.x,
-      startY: p.y,
+      startX: e.clientX,
+      startY: e.clientY,
       origX: layer.x,
       origY: layer.y,
       mode,
@@ -934,7 +910,6 @@ export default function ProspectsAdsPage() {
 
   const onPointerMoveStage = (e: React.PointerEvent) => {
     if (!dragRef.current) return;
-
     const d = dragRef.current;
     const dx = (e.clientX - d.startX) / scale;
     const dy = (e.clientY - d.startY) / scale;
@@ -984,31 +959,36 @@ export default function ProspectsAdsPage() {
               color: "rgba(234,255,251,0.92)",
             }}
           >
-            <span style={{ color: "var(--accent)" }}>�9</span> Pozyski ��˘ Premium Ads Studio
+            <span style={{ color: "var(--accent)" }}>🎯</span> Pozyski • Premium Ads Studio
           </div>
 
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight" style={{ color: "var(--text-main)" }}>
-            � Edytor kreacji �� presety + pe� ana kontrola
+            ✨ Edytor kreacji — presety + pełna kontrola
           </h1>
-          <p className="mt-2 text-sm ce-muted">Wybierz styl (Luxury/Editorial/Nordic/Night)  � dopracuj r��cznie  � eksport PNG/SVG.</p>
+          <p className="mt-2 text-sm ce-muted">
+            Wybierz styl (Luxury/Editorial/Nordic/Night) → dopracuj ręcznie → eksport PNG/SVG.
+          </p>
         </div>
 
         <div className="ce-row">
           <select className="input" style={uiInput()} value={format} onChange={(e) => setFormat(e.target.value as Format)}>
-            <option value="square">1080��1080 (post)</option>
-            <option value="story">1080��1920 (story/reels/tiktok)</option>
+            <option value="square">1080×1080 (post)</option>
+            <option value="story">1080×1920 (story/reels/tiktok)</option>
           </select>
 
-          <button style={uiBtn()} onClick={addText}>9> � Tekst</button>
-          <button style={uiBtn()} onClick={addPill}>9> � CTA/Pill</button>
-          <button style={uiBtn()} onClick={addBox}>9> � Box</button>
+          <button style={uiBtn()} onClick={addText}>➕ Tekst</button>
+          <button style={uiBtn()} onClick={addPill}>➕ CTA/Pill</button>
+          <button style={uiBtn()} onClick={addBox}>➕ Box</button>
 
-          <button style={uiBtn(true)} onClick={async () => downloadPngFromSvg(exported.svg, `ad-${styleKey}-${format}.png`, exported.W, exported.H, bgHex)}>
-            ����<�9 Eksport PNG
+          <button
+            style={uiBtn(true)}
+            onClick={async () => downloadPngFromSvg(exported.svg, `ad-${styleKey}-${format}.png`, exported.W, exported.H, bgHex)}
+          >
+            🖼️ Eksport PNG
           </button>
 
           <button style={uiBtn()} onClick={async () => downloadSvg(exported.svg, `ad-${styleKey}-${format}.svg`)}>
-            =�  Eksport SVG
+            📄 Eksport SVG
           </button>
         </div>
       </div>
@@ -1018,8 +998,8 @@ export default function ProspectsAdsPage() {
         <section className="p-4" style={uiCard()}>
           <div className="ce-row" style={{ justifyContent: "space-between" }}>
             <div>
-              <div className="text-sm font-extrabold">Podgl&d</div>
-              <div className="text-xs ce-muted">Kliknij element, przeci&gnij, zmie� rozmiar uchwytem.</div>
+              <div className="text-sm font-extrabold">Podgląd</div>
+              <div className="text-xs ce-muted">Kliknij element, przeciągnij, zmień rozmiar uchwytem.</div>
             </div>
 
             <div className="ce-row">
@@ -1030,11 +1010,11 @@ export default function ProspectsAdsPage() {
                   setActiveId(null);
                 }}
               >
-                �ػ Reset layout
+                🔁 Reset layout
               </button>
 
               <button style={uiBtn()} onClick={() => copy(exported.svg)}>
-                =�   Kopiuj SVG
+                📋 Kopiuj SVG
               </button>
             </div>
           </div>
@@ -1082,7 +1062,6 @@ export default function ProspectsAdsPage() {
                     >
                       {l.type === "text" ? <span>{l.text}</span> : null}
                       {l.type === "pill" ? <span>{l.text}</span> : null}
-                      {l.type === "box" ? null : null}
 
                       {!l.locked ? (
                         <div
@@ -1107,57 +1086,85 @@ export default function ProspectsAdsPage() {
             <div className="text-sm font-extrabold">Style premium</div>
             <div className="mt-2 ce-row">
               {(["luxury", "editorial", "nordic", "night"] as StylePresetKey[]).map((k) => (
-                <button
-                  key={k}
-                  style={uiBtn(k === styleKey)}
-                  onClick={() => applyStyle(k)}
-                  title={preset(k).label}
-                >
+                <button key={k} style={uiBtn(k === styleKey)} onClick={() => applyStyle(k)} title={preset(k).label}>
                   {preset(k).label}
                 </button>
               ))}
             </div>
 
             <div className="mt-3 text-xs ce-muted">
-              Preset ustawia: typografi�� + kolory + ��[karta/CTA. Potem mo���esz r��cznie dopieszcza � wszystko.
+              Preset ustawia: typografię + kolory + tło/kartę/CTA. Potem możesz ręcznie dopieszczać wszystko.
             </div>
           </div>
 
           {/* BG */}
           <div className="mt-6">
-            <div className="text-xs font-extrabold ce-muted">T� ao</div>
+            <div className="text-xs font-extrabold ce-muted">Tło</div>
 
-            <label style={uiLabel()}>Kolor t� aa (fallback)</label>
-            <ColorPicker label="" value={bgHex} onChange={setBgHex} helper="U���ywane, gdy nie masz wgranego zdj��cia." />
+            <label style={uiLabel()}>Kolor tła (fallback)</label>
+            <ColorPicker value={bgHex} onChange={setBgHex} helper="Używane, gdy nie masz wgranego zdjęcia." label="" />
 
-            <label style={uiLabel()}>Wczytaj zdj��cie t� aa</label>
-            <input type="file" accept="image/*" style={uiInput()} onChange={(e) => e.target.files?.[0] && onUploadBg(e.target.files[0])} />
+            <label style={uiLabel()}>Wczytaj zdjęcie tła</label>
+            <input
+              type="file"
+              accept="image/*"
+              style={uiInput()}
+              onChange={(e) => e.target.files?.[0] && onUploadBg(e.target.files[0])}
+            />
 
             <div className="mt-3 ce-row">
-              <button style={uiBtn()} onClick={() => setBg((p) => ({ ...p, dataUrl: null, iw: 0, ih: 0 }))} disabled={!bg.dataUrl}>
-                � � Usu� t� ao
+              <button
+                style={uiBtn()}
+                onClick={() => setBg((p) => ({ ...p, dataUrl: null, iw: 0, ih: 0 }))}
+                disabled={!bg.dataUrl}
+              >
+                🧹 Usuń tło
               </button>
               <button style={uiBtn()} onClick={() => setBg((p) => ({ ...p, scale: 1, offsetX: 0, offsetY: 0 }))}>
-                 �9<� Reset kadru
+                🎯 Reset kadru
               </button>
             </div>
 
             <label style={uiLabel()}>Dim (przyciemnienie)</label>
-            <input type="range" min={0} max={85} value={Math.round(bg.dim * 100)} onChange={(e) => setBg((p) => ({ ...p, dim: Number(e.target.value || 0) / 100 }))} style={{ width: "100%" }} />
+            <input
+              type="range"
+              min={0}
+              max={85}
+              value={Math.round(bg.dim * 100)}
+              onChange={(e) => setBg((p) => ({ ...p, dim: Number(e.target.value || 0) / 100 }))}
+              style={{ width: "100%" }}
+            />
             <div className="text-xs ce-muted">Obecnie: {Math.round(bg.dim * 100)}%</div>
 
             <label style={uiLabel()}>Zoom</label>
-            <input type="range" min={100} max={300} value={Math.round(bg.scale * 100)} onChange={(e) => setBg((p) => ({ ...p, scale: Number(e.target.value || 100) / 100 }))} style={{ width: "100%" }} />
+            <input
+              type="range"
+              min={100}
+              max={300}
+              value={Math.round(bg.scale * 100)}
+              onChange={(e) => setBg((p) => ({ ...p, scale: Number(e.target.value || 100) / 100 }))}
+              style={{ width: "100%" }}
+            />
             <div className="text-xs ce-muted">Obecnie: {Math.round(bg.scale * 100)}%</div>
 
             <div className="mt-3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <div>
                 <label style={uiLabel()}>Offset X</label>
-                <input style={uiInput()} type="number" value={bg.offsetX} onChange={(e) => setBg((p) => ({ ...p, offsetX: Number(e.target.value || 0) }))} />
+                <input
+                  style={uiInput()}
+                  type="number"
+                  value={bg.offsetX}
+                  onChange={(e) => setBg((p) => ({ ...p, offsetX: Number(e.target.value || 0) }))}
+                />
               </div>
               <div>
                 <label style={uiLabel()}>Offset Y</label>
-                <input style={uiInput()} type="number" value={bg.offsetY} onChange={(e) => setBg((p) => ({ ...p, offsetY: Number(e.target.value || 0) }))} />
+                <input
+                  style={uiInput()}
+                  type="number"
+                  value={bg.offsetY}
+                  onChange={(e) => setBg((p) => ({ ...p, offsetY: Number(e.target.value || 0) }))}
+                />
               </div>
             </div>
           </div>
@@ -1170,24 +1177,45 @@ export default function ProspectsAdsPage() {
               {sortedLayers.map((l) => {
                 const on = l.id === activeId;
                 return (
-                  <div key={l.id} className={`ce-layer ${on ? "ce-layerActive" : ""}`} onClick={() => setActiveId(l.id)} style={{ cursor: "pointer" }}>
+                  <div
+                    key={l.id}
+                    className={`ce-layer ${on ? "ce-layerActive" : ""}`}
+                    onClick={() => setActiveId(l.id)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className="ce-row" style={{ justifyContent: "space-between" }}>
                       <div style={{ fontWeight: 900, fontSize: 13 }}>
                         {l.name} <span className="ce-muted" style={{ fontWeight: 800 }}>{`(${l.type})`}</span>
                       </div>
                       <div className="ce-row">
-                        <button style={uiBtn()} onClick={(e) => { e.stopPropagation(); moveLayerZ(l.id, "up"); }}> � �</button>
-                        <button style={uiBtn()} onClick={(e) => { e.stopPropagation(); moveLayerZ(l.id, "down"); }}> �=� </button>
+                        <button style={uiBtn()} onClick={(e) => { e.stopPropagation(); moveLayerZ(l.id, "up"); }}>
+                          ⬆️
+                        </button>
+                        <button style={uiBtn()} onClick={(e) => { e.stopPropagation(); moveLayerZ(l.id, "down"); }}>
+                          ⬇️
+                        </button>
                       </div>
                     </div>
 
                     <div className="ce-row" style={{ marginTop: 8 }}>
-                      <button style={uiBtn()} onClick={(e) => { e.stopPropagation(); setLayers((p) => p.map((x) => (x.id === l.id ? { ...x, visible: !x.visible } : x))); }}>
-                        {l.visible ? " �� Widoczny" : "� Ukryty"}
+                      <button
+                        style={uiBtn()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLayers((p) => p.map((x) => (x.id === l.id ? { ...x, visible: !x.visible } : x)));
+                        }}
+                      >
+                        {l.visible ? "👁️ Widoczny" : "🙈 Ukryty"}
                       </button>
 
-                      <button style={uiBtn()} onClick={(e) => { e.stopPropagation(); setLayers((p) => p.map((x) => (x.id === l.id ? { ...x, locked: !x.locked } : x))); }}>
-                        {l.locked ? " Zablok." : "=�  Odblok."}
+                      <button
+                        style={uiBtn()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLayers((p) => p.map((x) => (x.id === l.id ? { ...x, locked: !x.locked } : x)));
+                        }}
+                      >
+                        {l.locked ? "🔒 Zablok." : "🔓 Odblok."}
                       </button>
                     </div>
                   </div>
@@ -1201,11 +1229,13 @@ export default function ProspectsAdsPage() {
             <div className="text-xs font-extrabold ce-muted">Edycja zaznaczonej warstwy</div>
 
             {!active ? (
-              <div className="mt-3 text-sm ce-muted">Kliknij element na podgl&dzie albo wybierz warstw��.</div>
+              <div className="mt-3 text-sm ce-muted">Kliknij element na podglądzie albo wybierz warstwę.</div>
             ) : (
               <div className="mt-3" style={{ display: "grid", gap: 12 }}>
                 <div className="ce-row">
-                  <button style={uiBtn(false, true)} onClick={removeActive}>� � Usu�</button>
+                  <button style={uiBtn(false, true)} onClick={removeActive}>
+                    🗑️ Usuń
+                  </button>
                 </div>
 
                 <div>
@@ -1223,7 +1253,14 @@ export default function ProspectsAdsPage() {
                 <div style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr 1fr" }}>
                   <div>
                     <label style={uiLabel()}>Opacity</label>
-                    <input type="range" min={10} max={100} value={Math.round((active.opacity ?? 1) * 100)} onChange={(e) => updateActive({ opacity: Number(e.target.value || 100) / 100 })} style={{ width: "100%" }} />
+                    <input
+                      type="range"
+                      min={10}
+                      max={100}
+                      value={Math.round((active.opacity ?? 1) * 100)}
+                      onChange={(e) => updateActive({ opacity: Number(e.target.value || 100) / 100 })}
+                      style={{ width: "100%" }}
+                    />
                     <div className="text-xs ce-muted">{Math.round((active.opacity ?? 1) * 100)}%</div>
                   </div>
                   <div>
@@ -1236,19 +1273,19 @@ export default function ProspectsAdsPage() {
                   <>
                     <div>
                       <label style={uiLabel()}>Tekst</label>
-                      <textarea style={{ ...uiInput(), minHeight: 110 }} value={active.text} onChange={(e) => updateActive({ text: e.target.value })} />
+                      <textarea style={{ ...uiInput(), minHeight: 110 }} value={(active as any).text} onChange={(e) => updateActive({ text: e.target.value } as any)} />
                     </div>
 
-                    <FontSelect label="Font" value={active.fontFamily} onChange={(v) => updateActive({ fontFamily: v })} />
+                    <FontSelect label="Font" value={(active as any).fontFamily} onChange={(v) => updateActive({ fontFamily: v } as any)} />
 
                     <div style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr 1fr" }}>
-                      <div><label style={uiLabel()}>Rozmiar</label><input style={uiInput()} type="number" value={active.fontSize} onChange={(e) => updateActive({ fontSize: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Waga</label><input style={uiInput()} type="number" value={active.fontWeight} onChange={(e) => updateActive({ fontWeight: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Line height</label><input style={uiInput()} type="number" step="0.05" value={active.lineHeight} onChange={(e) => updateActive({ lineHeight: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Tracking</label><input style={uiInput()} type="number" step="0.1" value={active.letterSpacing} onChange={(e) => updateActive({ letterSpacing: Number(e.target.value || 0) })} /></div>
+                      <div><label style={uiLabel()}>Rozmiar</label><input style={uiInput()} type="number" value={(active as any).fontSize} onChange={(e) => updateActive({ fontSize: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Waga</label><input style={uiInput()} type="number" value={(active as any).fontWeight} onChange={(e) => updateActive({ fontWeight: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Line height</label><input style={uiInput()} type="number" step="0.05" value={(active as any).lineHeight} onChange={(e) => updateActive({ lineHeight: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Tracking</label><input style={uiInput()} type="number" step="0.1" value={(active as any).letterSpacing} onChange={(e) => updateActive({ letterSpacing: Number(e.target.value || 0) } as any)} /></div>
                     </div>
 
-                    <ColorPicker label="Kolor tekstu" value={active.color} onChange={(v) => updateActive({ color: v })} />
+                    <ColorPicker label="Kolor tekstu" value={(active as any).color} onChange={(v) => updateActive({ color: v } as any)} />
                   </>
                 ) : null}
 
@@ -1256,35 +1293,35 @@ export default function ProspectsAdsPage() {
                   <>
                     <div>
                       <label style={uiLabel()}>Tekst</label>
-                      <input style={uiInput()} value={active.text} onChange={(e) => updateActive({ text: e.target.value })} />
+                      <input style={uiInput()} value={(active as any).text} onChange={(e) => updateActive({ text: e.target.value } as any)} />
                     </div>
 
-                    <FontSelect label="Font" value={active.fontFamily} onChange={(v) => updateActive({ fontFamily: v })} />
+                    <FontSelect label="Font" value={(active as any).fontFamily} onChange={(v) => updateActive({ fontFamily: v } as any)} />
 
                     <div style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr 1fr" }}>
-                      <div><label style={uiLabel()}>Rozmiar</label><input style={uiInput()} type="number" value={active.fontSize} onChange={(e) => updateActive({ fontSize: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Waga</label><input style={uiInput()} type="number" value={active.fontWeight} onChange={(e) => updateActive({ fontWeight: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Padding X</label><input style={uiInput()} type="number" value={active.paddingX} onChange={(e) => updateActive({ paddingX: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Padding Y</label><input style={uiInput()} type="number" value={active.paddingY} onChange={(e) => updateActive({ paddingY: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Radius</label><input style={uiInput()} type="number" value={active.radius} onChange={(e) => updateActive({ radius: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Border width</label><input style={uiInput()} type="number" step="0.5" value={active.borderWidth} onChange={(e) => updateActive({ borderWidth: Number(e.target.value || 0) })} /></div>
+                      <div><label style={uiLabel()}>Rozmiar</label><input style={uiInput()} type="number" value={(active as any).fontSize} onChange={(e) => updateActive({ fontSize: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Waga</label><input style={uiInput()} type="number" value={(active as any).fontWeight} onChange={(e) => updateActive({ fontWeight: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Padding X</label><input style={uiInput()} type="number" value={(active as any).paddingX} onChange={(e) => updateActive({ paddingX: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Padding Y</label><input style={uiInput()} type="number" value={(active as any).paddingY} onChange={(e) => updateActive({ paddingY: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Radius</label><input style={uiInput()} type="number" value={(active as any).radius} onChange={(e) => updateActive({ radius: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Border width</label><input style={uiInput()} type="number" step="0.5" value={(active as any).borderWidth} onChange={(e) => updateActive({ borderWidth: Number(e.target.value || 0) } as any)} /></div>
                     </div>
 
-                    <ColorPicker label="Kolor tekstu" value={active.color} onChange={(v) => updateActive({ color: v })} />
-                    <ColorPicker label="T� ao (pill)" value={active.bg} onChange={(v) => updateActive({ bg: v })} />
-                    <ColorPicker label="Ramka (pill)" value={active.border} onChange={(v) => updateActive({ border: v })} />
+                    <ColorPicker label="Kolor tekstu" value={(active as any).color} onChange={(v) => updateActive({ color: v } as any)} />
+                    <ColorPicker label="Tło (pill)" value={(active as any).bg} onChange={(v) => updateActive({ bg: v } as any)} />
+                    <ColorPicker label="Ramka (pill)" value={(active as any).border} onChange={(v) => updateActive({ border: v } as any)} />
                   </>
                 ) : null}
 
                 {active.type === "box" ? (
                   <>
-                    <ColorPicker label="T� ao (box)" value={active.bg} onChange={(v) => updateActive({ bg: v })} />
-                    <ColorPicker label="Ramka (box)" value={active.border} onChange={(v) => updateActive({ border: v })} />
+                    <ColorPicker label="Tło (box)" value={(active as any).bg} onChange={(v) => updateActive({ bg: v } as any)} />
+                    <ColorPicker label="Ramka (box)" value={(active as any).border} onChange={(v) => updateActive({ border: v } as any)} />
 
                     <div style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr 1fr" }}>
-                      <div><label style={uiLabel()}>Border width</label><input style={uiInput()} type="number" step="0.5" value={active.borderWidth} onChange={(e) => updateActive({ borderWidth: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Radius</label><input style={uiInput()} type="number" value={active.radius} onChange={(e) => updateActive({ radius: Number(e.target.value || 0) })} /></div>
-                      <div><label style={uiLabel()}>Blur</label><input style={uiInput()} type="number" value={active.blur} onChange={(e) => updateActive({ blur: Number(e.target.value || 0) })} /></div>
+                      <div><label style={uiLabel()}>Border width</label><input style={uiInput()} type="number" step="0.5" value={(active as any).borderWidth} onChange={(e) => updateActive({ borderWidth: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Radius</label><input style={uiInput()} type="number" value={(active as any).radius} onChange={(e) => updateActive({ radius: Number(e.target.value || 0) } as any)} /></div>
+                      <div><label style={uiLabel()}>Blur</label><input style={uiInput()} type="number" value={(active as any).blur} onChange={(e) => updateActive({ blur: Number(e.target.value || 0) } as any)} /></div>
                     </div>
                   </>
                 ) : null}
@@ -1346,14 +1383,14 @@ function layerStyle(layer: Layer): React.CSSProperties {
 
   return {
     ...base,
-    color: layer.color,
-    fontFamily: layer.fontFamily,
-    fontSize: layer.fontSize,
-    fontWeight: layer.fontWeight as any,
-    letterSpacing: `${layer.letterSpacing}px`,
-    lineHeight: layer.lineHeight,
+    color: (layer as TextLayer).color,
+    fontFamily: (layer as TextLayer).fontFamily,
+    fontSize: (layer as TextLayer).fontSize,
+    fontWeight: (layer as TextLayer).fontWeight as any,
+    letterSpacing: `${(layer as TextLayer).letterSpacing}px`,
+    lineHeight: (layer as TextLayer).lineHeight,
     whiteSpace: "pre-wrap",
-    textAlign: layer.align,
+    textAlign: (layer as TextLayer).align,
     width: layer.w,
     height: "auto",
   };
@@ -1398,7 +1435,7 @@ function BgLayer({ bg, format, bgHex }: { bg: BgState; format: Format; bgHex: st
 
 function uiCard(): React.CSSProperties {
   return {
-    background: "var(--bg-card)",
+    background: "rgba(255,255,255,0.04)",
     border: "1px solid var(--border-soft)",
     borderRadius: 18,
   };

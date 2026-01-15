@@ -5,6 +5,7 @@ import Script from "next/script";
 import CalliWidget from "./components/CalliWidget";
 import MarketingPixels from "./components/MarketingPixels";
 import ThemeSwitcher from "./components/ThemeSwitcher";
+import FollowUpWatcher from "./components/FollowUpWatcher"; // ✅ DODANE
 
 export const viewport = {
   width: "device-width",
@@ -42,8 +43,13 @@ export default function RootLayout({
   return (
     <html lang="pl" suppressHydrationWarning>
       <head>
-        <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/satoshi" />
-      </head>
+  <meta charSet="utf-8" />
+  <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/satoshi" />
+</head>
+
 
       <body className={inter.className}>
         <style>{`
@@ -205,7 +211,7 @@ export default function RootLayout({
               flexWrap: "wrap",
             }}
           >
-            {/* LEWA: logo + ThemeSwitcher obok, bez napisu Navy/Mint */}
+            {/* LEWA: logo + ThemeSwitcher */}
             <div
               style={{
                 display: "flex",
@@ -239,85 +245,80 @@ export default function RootLayout({
                 Calyx AI
               </span>
 
-              {/* & tu jest prze� a&cznik motyw�w */}
               <ThemeSwitcher />
             </div>
 
             {/* MOBILE */}
             <div className="ce-mobile-menu">
               <details id="ce-mobile-details">
-                <summary className="ce-hamburger">�� Menu</summary>
+                <summary className="ce-hamburger">🍔 Menu</summary>
 
                 <div className="ce-dropdown" id="ce-mobile-dropdown">
                   <div className="ce-grid">
-                    <NavLink href="/dashboard">=� 9� Dashboard</NavLink>
-                    <NavLink href="/leads">=� 9> Leady</NavLink>
-                    <NavLink href="/contacts"> �� Kontakty</NavLink>
-                    <NavLink href="/agents">� ���9��� Agenci</NavLink>
+                    <NavLink href="/dashboard">📊 Dashboard</NavLink>
+                    <NavLink href="/leads">📥 Leady</NavLink>
+                    <NavLink href="/contacts">👥 Kontakty</NavLink>
+                    <NavLink href="/agents">🧑‍💼 Agenci</NavLink>
 
-                    <NavLink href="/prospects">9� Pozyski</NavLink>
-                    <NavLink href="/prospects/intake">��> Pozyski z formularzy</NavLink>
-                    <NavLink href="/prospects/ads">=� 9� Reklamy / Social</NavLink>
-                    <NavLink href="/prospects/form">=� 9 Formularz</NavLink>
+                    <NavLink href="/prospects">🎯 Pozyski</NavLink>
+                    <NavLink href="/prospects/intake">🧾 Pozyski z formularzy</NavLink>
+                    <NavLink href="/prospects/ads">📣 Reklamy / Social</NavLink>
+                    <NavLink href="/prospects/form">📝 Formularz</NavLink>
 
-                    <NavLink href="/properties">9� Nieruchomo� _ci</NavLink>
+                    <NavLink href="/properties">🏠 Nieruchomości</NavLink>
 
-                    <NavLink href="/calendar">=� & Kalendarz</NavLink>
-                    <NavLink href="/followups"> Follow-up</NavLink>
+                    <NavLink href="/calendar">📅 Kalendarz</NavLink>
+                    <NavLink href="/followups">🔁 Follow-up</NavLink>
+                    <NavLink href="/settings/social-media">📱 Social media</NavLink>
 
-                    <NavLink href="/analyzed">�� AI: Analiza</NavLink>
-                    <NavLink href="/assistant/live">� AI: Coach</NavLink>
+                    <NavLink href="/analyzed">🧠 AI: Analiza</NavLink>
+                    <NavLink href="/assistant/live">🤖 AI: Coach</NavLink>
 
-                    <NavLink href="/news">�9>�<�9 Pras�wka</NavLink>
-                    <NavLink href="/newsletter"> ��<�9 Newsletter</NavLink>
-                    <NavLink href="/market">9a9� Market</NavLink>
-                    <NavLink href="/voice-notes">���<�9 G� aos�Bwki</NavLink>
-                    <NavLink href="/documents/sale">=�  Dokumenty</NavLink>
+                    <NavLink href="/news">📰 Prasówka</NavLink>
+                    <NavLink href="/newsletter">✉️ Newsletter</NavLink>
+                    <NavLink href="/market">🛒 Market</NavLink>
+                    <NavLink href="/voice-notes">🎙️ Głosówki</NavLink>
+                    <NavLink href="/documents/sale">📄 Dokumenty</NavLink>
                   </div>
                 </div>
               </details>
             </div>
 
             {/* DESKTOP */}
-            <div
-              className="ce-desktop-links"
-              style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}
-            >
-              <NavLink href="/dashboard">=� 9� Dashboard</NavLink>
-              <NavLink href="/leads">=� 9> Leady</NavLink>
-              <NavLink href="/contacts"> �� Kontakty</NavLink>
-              <NavLink href="/agents">� ���9��� Agenci</NavLink>
+            <div className="ce-desktop-links" style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+              <NavLink href="/dashboard">📊 Dashboard</NavLink>
+              <NavLink href="/leads">📥 Leady</NavLink>
+              <NavLink href="/contacts">👥 Kontakty</NavLink>
+              <NavLink href="/agents">🧑‍💼 Agenci</NavLink>
 
-              <NavLink href="/prospects">9� Pozyski</NavLink>
-              <NavLink href="/properties">9� Nieruchomo� _ci</NavLink>
+              <NavLink href="/prospects">🎯 Pozyski</NavLink>
+              <NavLink href="/properties">🏠 Nieruchomości</NavLink>
 
-              <NavLink href="/calendar">=� & Kalendarz</NavLink>
-              <NavLink href="/followups"> Follow-up</NavLink>
+              <NavLink href="/calendar">📅 Kalendarz</NavLink>
+              <NavLink href="/followups">🔁 Follow-up</NavLink>
+              <NavLink href="/settings/social-media">📱 Social media</NavLink>
 
-              <NavLink href="/analyzed">�� AI: Analiza</NavLink>
-              <NavLink href="/assistant/live">� AI: Coach</NavLink>
+              <NavLink href="/analyzed">🧠 AI: Analiza</NavLink>
+              <NavLink href="/assistant/live">🤖 AI: Coach</NavLink>
 
-              <NavLink href="/market">9a9� Market</NavLink>
-              <NavLink href="/voice-notes">���<�9 G� aos�Bwki</NavLink>
-              <NavLink href="/documents/sale">=�  Dokumenty</NavLink>
-              <NavLink href="/news">�9>�<�9 Pras�wka</NavLink>
-              <NavLink href="/newsletter"> ��<�9 Newsletter</NavLink>
+              <NavLink href="/market">🛒 Market</NavLink>
+              <NavLink href="/voice-notes">🎙️ Głosówki</NavLink>
+              <NavLink href="/documents/sale">📄 Dokumenty</NavLink>
+              <NavLink href="/news">📰 Prasówka</NavLink>
+              <NavLink href="/newsletter">✉️ Newsletter</NavLink>
             </div>
           </div>
         </nav>
 
-        <main
-          style={{
-            maxWidth: 1240,
-            margin: "0 auto",
-            padding: "18px 18px 28px",
-          }}
-        >
+        <main style={{ maxWidth: 1240, margin: "0 auto", padding: "18px 18px 28px" }}>
           {children}
         </main>
 
         <CalliWidget />
         <MarketingPixels />
+
+        {/* ✅ POWIADOMIENIA FOLLOW-UP */}
+        <FollowUpWatcher />
       </body>
     </html>
   );

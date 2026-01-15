@@ -1,4 +1,4 @@
-?import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 
 export const runtime = "nodejs"; // bezpiecznie na Windows/dev
 export const dynamic = "force-dynamic";
@@ -18,31 +18,35 @@ function json(data: any, status = 200) {
 
 /**
  * DEV-SAFE endpoint:
- * - Nigdy nie powinien wysypywać‡ 500 (żeby UI nie spamował konsolć…).
- * - Jeśli masz kiedyś prawdziwć… organizacjć™ z DB/auth, podmień logikć™ w tym miejscu.
+ * - Nigdy nie powinien wysypywać 500 (żeby UI nie spamowało konsoli).
+ * - Jeśli kiedyś podłączysz prawdziwą organizację (auth/DB),
+ *   to logikę podmieniasz tylko tutaj.
  */
 export async function GET() {
   try {
-    // 1) Jeśli masz ENV z org (opcjonalnie)
+    // 1) ENV (opcjonalnie)
     const envOrgId = process.env.ORG_ID?.trim();
     const envOrgName = process.env.ORG_NAME?.trim();
 
     if (envOrgId && envOrgName) {
-      const org: Org = { id: envOrgId, name: envOrgName, plan: process.env.ORG_PLAN?.trim() || undefined };
+      const org: Org = {
+        id: envOrgId,
+        name: envOrgName,
+        plan: process.env.ORG_PLAN?.trim() || undefined,
+      };
       return json({ ok: true, org });
     }
 
-    // 2) Fallback lokalny — żeby UI działało zawsze
+    // 2) Fallback lokalny – UI zawsze działa
     const org: Org = { id: "local", name: "Local Workspace", plan: "dev" };
     return json({ ok: true, org });
   } catch (err: any) {
-    // Zamiast 500 — zwróć fallback 200, żeby nie blokować‡ UI
+    // Nigdy 500 – UI nie ma się wysypywać
     const org: Org = { id: "local", name: "Local Workspace", plan: "dev" };
     return json({
       ok: true,
       org,
-      warning: "Falling back to local org because /api/org/current threw an error.",
-      // NIE wywalaj całego stack trace do klienta w produkcji — ale w dev może pomóc:
+      warning: "Fallback local org (error in /api/org/current).",
       error: String(err?.message || err),
     });
   }

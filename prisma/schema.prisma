@@ -35,6 +35,19 @@ enum InteractionType {
   NOTE
   WHATSAPP
 }
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE
+  LINKEDIN
+  GOOGLE_BUSINESS
+  WHATSAPP
+  X
+  TELEGRAM
+  MESSENGER
+  OTHER
+}
 
 enum AITaskType {
   FOLLOW_UP
@@ -159,6 +172,8 @@ model AgentProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  socialLinks AgentSocialLink[]
+
   member OrgMember @relation(fields: [memberId], references: [id])
 }
 
@@ -211,4 +226,43 @@ model ContactTagOnContact {
 
   @@id([contactId, tagId])
   @@index([tagId])
+}
+
+model AgentSocialLink {
+  id             String         @id @default(cuid())
+  agentProfileId String
+  platform       SocialPlatform
+  label          String?
+  url            String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  agentProfile AgentProfile @relation(fields: [agentProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([agentProfileId, platform])
+  @@index([agentProfileId])
+}
+
+model Client {
+  id             String   @id @default(cuid())
+  name           String
+  // ...
+  followUpAt     DateTime?
+  followUpNote   String?
+  followUpDoneAt DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // "followup_due"
+  title     String
+  body      String?
+  clientId  String?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([readAt])
+  @@index([clientId])
 }

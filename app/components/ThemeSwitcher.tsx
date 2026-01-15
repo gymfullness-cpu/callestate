@@ -1,6 +1,6 @@
-?"use client";
+"use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type ThemeId =
   | "navyMint"
@@ -31,18 +31,18 @@ const LABEL: Record<ThemeId, string> = {
   offwhite: "Off-White",
 };
 
-export default function themeswitcher() {
+export default function ThemeSwitcher() {
   const [theme, setTheme] = useState<ThemeId>("navyMint");
 
   useEffect(() => {
     const raw = localStorage.getItem("ce-theme");
 
     // migracje starych nazw
-    const migrated =
-      raw === "ivory" || raw === "pastel" ? "offwhite" : raw;
+    const migrated = raw === "ivory" || raw === "pastel" ? "offwhite" : raw;
 
-    const safe: ThemeId =
-      ORDER.includes(migrated as ThemeId) ? (migrated as ThemeId) : "navyMint";
+    const safe: ThemeId = ORDER.includes(migrated as ThemeId)
+      ? (migrated as ThemeId)
+      : "navyMint";
 
     document.documentElement.dataset.theme = safe;
     localStorage.setItem("ce-theme", safe);
@@ -58,7 +58,7 @@ export default function themeswitcher() {
   };
 
   const hint = useMemo(
-    () => `Motyw: ${LABEL[theme]} (kliknij aby zmienić‡)`,
+    () => `Motyw: ${LABEL[theme]} (kliknij aby zmienić)`,
     [theme]
   );
 
@@ -82,7 +82,7 @@ export default function themeswitcher() {
         backdropFilter: "blur(14px)",
       }}
     >
-      ď¸🏠
+      🏠
       <span
         style={{
           width: 8,

@@ -1,32 +1,8 @@
 {
   "61fae79d-661d-42b3-9bf8-bcf71622ddad": {
     "userId": "61fae79d-661d-42b3-9bf8-bcf71622ddad",
-    "profile": "Użytkownik interesuje się tematyką nieruchomości w Polsce, zwłaszcza kosztami i formalnościami związanymi z hipoteką, założeniem księgi wieczystej oraz umowami notarialnymi. Preferuje krótkie, konkretne odpowiedzi dotyczące prawa i procedur urzędowych.",
+    "profile": "Użytkownik interesuje się tematyką nieruchomości w Polsce, zwłaszcza kosztami i formalnościami związanymi z hipoteką, księgą wieczystą oraz umowami notarialnymi. Preferuje krótkie, konkretne odpowiedzi dotyczące prawa i procedur urzędowych.",
     "messages": [
-      {
-        "role": "user",
-        "content": "skąd wezme dokumenty  do założenia ksiegi wieczystej dla swpdl"
-      },
-      {
-        "role": "assistant",
-        "content": "Do założenia księgi wieczystej dla spółdzielczego własnościowego prawa do lokalu (SWPDL) potrzebujesz przede wszystkim dokumentów ze spółdzielni, które potwierdzają Twoje prawo do lokalu, np.:\n\n- Zaświadczenie o przysługującym prawie do lokalu (SWPDL) ze spółdzielni,\n- Dokument potwierdzający nabycie prawa (np. umowa, decyzja spółdzielni),\n- Inne dokumenty wymagane przez sąd wieczystoksięgowy (np. wypis z rejestru spółdzielni).\n\nW praktyce często konieczne jest złożenie wniosku do sądu wieczystoksięgowego wraz z tymi dokumentami, a czasem wymaga się aktu notarialnego.\n\nDokładne dokumenty mogą się różnić w zależności od spółdzielni i sądu, dlatego warto skonsultować się z sądem wieczystoksięgowym lub notariuszem.\n\nTo informacja ogólna, nie porada prawna."
-      },
-      {
-        "role": "assistant",
-        "content": "Cześć 👋 Jestem **Calli Chat**.\n\nPomagam w nieruchomościach (KW, notariusz, urząd, dokumenty), ale mogę też odpowiedzieć na dowolne pytanie i sprawdzić aktualne informacje w sieci.\n\nZadaj pytanie 👇"
-      },
-      {
-        "role": "user",
-        "content": "ile kosztuje wpis do hipoteki"
-      },
-      {
-        "role": "assistant",
-        "content": "Koszt wpisu hipoteki do księgi wieczystej w Polsce w 2024 roku składa się z kilku elementów:\n\n1. **Opłata sądowa za wpis hipoteki**: 200 zł.\n\n2. **Podatek od czynności cywilnoprawnych (PCC)**: 19 zł, jeśli wysokość zabezpieczonej wierzytelności nie jest określona.\n\n3. **Taksa notarialna**: Jeśli ustanowienie hipoteki odbywa się w formie aktu notarialnego, koszt ten zależy od wartości nieruchomości i może wynosić od około 100 zł do kilku tysięcy złotych. ([lukaszsroczynski.pl](https://lukaszsroczynski.pl/2024/01/16/wpis-hipoteki-do-ksiegi-wieczystej/?utm_source=openai))\n\nDodatkowo, jeśli nieruchomość nie posiada księgi wieczystej, konieczne jest jej założenie, co wiąże się z opłatą sądową w wysokości 100 zł. ([kasastefczyka.pl](https://www.kasastefczyka.pl/finanse-bez-tajemnic/droga-do-wlasnego-m/wpis_hipoteki_do_ksiegi_wieczystej_krok_po_kroku_co_warto_wiedziec?utm_source=openai))\n\nWarto pamiętać, że opłaty te mogą ulec zmianie, dlatego zaleca się sprawdzenie aktualnych stawek przed podjęciem decyzji.\n\nTo informacja ogólna, nie porada prawna.\n\nŹródła:\n1. Wpis hipoteki do księgi wieczystej - Łukasz Sroczyński — https://lukaszsroczynski.pl/2024/01/16/wpis-hipoteki-do-ksiegi-wieczystej/?utm_source=openai\n2. Wpis hipoteki do księgi wieczystej. Sprawdź, jak to zrobić — https://www.kasastefczyka.pl/finanse-bez-tajemnic/droga-do-wlasnego-m/wpis_hipoteki_do_ksiegi_wieczystej_krok_po_kroku_co_warto_wiedziec?utm_source=openai"
-      },
-      {
-        "role": "user",
-        "content": "skąd wezme dokumenty  do założenia ksiegi wieczystej dla swpdl"
-      },
       {
         "role": "assistant",
         "content": "Do założenia księgi wieczystej dla spółdzielczego własnościowego prawa do lokalu (SWPDL) potrzebujesz przede wszystkim dokumentów ze spółdzielni, które potwierdzają Twoje prawo do lokalu, np.:\n\n- Zaświadczenie o przysługującym prawie do lokalu (SWPDL) ze spółdzielni,\n- Dokument potwierdzający nabycie prawa (np. umowa, decyzja spółdzielni),\n- Inne dokumenty wymagane przez sąd wieczystoksięgowy (np. wypis z rejestru spółdzielni).\n\nW praktyce często konieczne jest złożenie wniosku do sądu wieczystoksięgowego wraz z tymi dokumentami, a czasem wymaga się aktu notarialnego.\n\nDokładne dokumenty mogą się różnić w zależności od spółdzielni i sądu, dlatego warto skonsultować się z sądem wieczystoksięgowym lub notariuszem.\n\nTo informacja ogólna, nie porada prawna."
@@ -62,8 +38,40 @@
       {
         "role": "assistant",
         "content": "Koszt umowy przedwstępnej u notariusza zależy od wartości nieruchomości i stawek taksy notarialnej. Dla mieszkania o wartości około 900 000 zł taksa notarialna za umowę przedwstępną wynosi około połowy taksy za umowę ostateczną, czyli około 2 300–3 000 zł brutto (w tym VAT). Do tego mogą dojść koszty wypisów aktu notarialnego oraz ewentualne opłaty za wpis roszczenia do księgi wieczystej (150 zł).\n\nDokładne stawki ustala notariusz, ale taksa jest regulowana przepisami i zależy od wartości przedmiotu umowy.\n\nTo informacja ogólna, nie porada prawna.\n\nJeśli chcesz, mogę pomóc z dokładniejszą kalkulacją lub podać listę dokumentów potrzebnych do umowy przedwstępnej.\n\nNie znalazłem szczegółowych danych w przesłanych plikach, ale mogę poszukać aktualnych stawek w sieci."
+      },
+      {
+        "role": "assistant",
+        "content": "Cześć! Jestem Calli Chat.\n\nPomagam w nieruchomościach (KW, notariusz, urząd, dokumenty), ale mogę też odpowiedzieć na dowolne pytanie i sprawdzić aktualne informacje w sieci.\n\nZadaj pytanie!"
+      },
+      {
+        "role": "user",
+        "content": "czesc czat"
+      },
+      {
+        "role": "assistant",
+        "content": "Cześć! Jak mogę pomóc w temacie nieruchomości lub innym?"
+      },
+      {
+        "role": "assistant",
+        "content": "Cześć! Jestem Calli Chat.\n\nPomagam w nieruchomościach (KW, notariusz, urząd, dokumenty), ale mogę też odpowiedzieć na dowolne pytanie i sprawdzić aktualne informacje w sieci.\n\nZadaj pytanie!"
+      },
+      {
+        "role": "user",
+        "content": "czesc czat"
+      },
+      {
+        "role": "assistant",
+        "content": "Cześć! Jak mogę pomóc w temacie nieruchomości lub innym?"
+      },
+      {
+        "role": "user",
+        "content": "ile kosztuje podatek od nieruchomosci za 35m2 ?"
+      },
+      {
+        "role": "assistant",
+        "content": "Podatek od nieruchomości w Polsce jest naliczany na podstawie powierzchni użytkowej budynku mieszkalnego oraz obowiązujących stawek ustalanych przez Ministerstwo Finansów. W 2025 roku maksymalna stawka podatku dla budynków mieszkalnych wynosi 1,19 zł za 1 m² powierzchni użytkowej. ([wydarzenia.interia.pl](https://wydarzenia.interia.pl/kraj/news-podatek-od-nieruchomosci-w-2025-roku-terminy-stawki-obowiazk%2CnId%2C21401218?utm_source=openai))\n\nDla mieszkania o powierzchni 35 m² podatek oblicza się następująco:\n\n35 m² × 1,19 zł/m² = 41,65 zł rocznie\n\nWarto jednak pamiętać, że stawki podatku mogą się różnić w zależności od lokalizacji, ponieważ gminy mają prawo do ustalania własnych stawek w granicach określonych przez Ministerstwo Finansów. Dlatego zaleca się sprawdzenie aktualnych stawek obowiązujących w Twojej gminie. ([wydarzenia.interia.pl](https://wydarzenia.interia.pl/kraj/news-podatek-od-nieruchomosci-w-2025-roku-terminy-stawki-obowiazk%2CnId%2C21401218?utm_source=openai))\n\nTo informacja ogólna, nie porada prawna."
       }
     ],
-    "updatedAt": 1767716475832
+    "updatedAt": 1768413648246
   }
 }

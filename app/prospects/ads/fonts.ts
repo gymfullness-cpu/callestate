@@ -1,4 +1,4 @@
-?// app/prospects/ads/fonts.ts
+// app/prospects/ads/fonts.ts
 import {
   Inter,
   Playfair_Display,

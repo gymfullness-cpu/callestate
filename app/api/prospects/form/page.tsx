@@ -1,4 +1,4 @@
-?"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 
@@ -65,7 +65,15 @@ export default function ProspectsIntakeFormPage() {
     setErr("");
 
     if (!canSend) {
-      setErr("Uzupełnij wymagane pola (imię™, miasto, kontakt + zgoda).");
+      setErr("Uzupełnij wymagane pola (imię, miasto, kontakt + zgoda).");
+      return;
+    }
+
+    // proste anty-bot (na froncie): honeypot + zbyt szybkie wysłanie
+    const tooFast = Date.now() - (form.startedAt || 0) < 1500;
+    if (form.website.trim() || tooFast) {
+      // udajemy sukces, żeby bot nie próbował dalej
+      setDoneId("ok");
       return;
     }
 
@@ -82,7 +90,7 @@ export default function ProspectsIntakeFormPage() {
 
       setDoneId(String(data.id || ""));
     } catch (e: any) {
-      setErr(e?.message || "Nie udało się wysłać‡ formularza.");
+      setErr(e?.message || "Nie udało się wysłać formularza.");
     } finally {
       setSending(false);
     }
@@ -137,12 +145,15 @@ export default function ProspectsIntakeFormPage() {
     return (
       <main style={S.page}>
         <div style={S.card}>
-          <h1 className="text-3xl font-extrabold tracking-tight">… Dzić™kujć™!</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">Dziękuję!</h1>
           <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-            Zgłoszenie zapisane. Odezwć™ się do Ciebie.
+            Zgłoszenie zapisane. Odezwę się do Ciebie.
           </p>
 
-          <div className="mt-4 rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)" }}>
+          <div
+            className="mt-4 rounded-2xl p-4"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)" }}
+          >
             <div className="text-xs font-extrabold" style={{ color: "var(--text-muted)" }}>
               ID zgłoszenia
             </div>
@@ -160,7 +171,7 @@ export default function ProspectsIntakeFormPage() {
                 setErr("");
               }}
             >
-              ž• Wyślij kolejne zgłoszenie
+              Wyślij kolejne zgłoszenie
             </button>
           </div>
         </div>
@@ -180,9 +191,9 @@ export default function ProspectsIntakeFormPage() {
       `}</style>
 
       <div style={S.card}>
-        <h1 className="text-3xl font-extrabold tracking-tight">🏠  Chcesz sprzedać‡ nieruchomość‡?</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">🏠 Chcesz sprzedać nieruchomość?</h1>
         <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-          Zostaw kontakt i kilka informacji — wrócć™ z wycenć… i planem sprzedaży.
+          Zostaw kontakt i kilka informacji — wrócę z wyceną i planem sprzedaży.
         </p>
 
         {/* honeypot */}
@@ -197,24 +208,46 @@ export default function ProspectsIntakeFormPage() {
 
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label style={S.label}>imię™ i nazwisko *</label>
-            <input style={S.input} value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="Jan Kowalski" />
+            <label style={S.label}>Imię i nazwisko *</label>
+            <input
+              style={S.input}
+              value={form.name}
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+              placeholder="Jan Kowalski"
+            />
           </div>
 
           <div>
             <label style={S.label}>Telefon (lub email) *</label>
-            <input style={S.input} value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="500 600 700" />
-            <div className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>Możesz zostawić‡ tylko telefon albo tylko email.</div>
+            <input
+              style={S.input}
+              value={form.phone}
+              onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+              placeholder="500 600 700"
+            />
+            <div className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>
+              Możesz zostawić tylko telefon albo tylko email.
+            </div>
           </div>
 
           <div>
             <label style={S.label}>Email</label>
-            <input style={S.input} value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} placeholder="jan@email.pl" />
+            <input
+              style={S.input}
+              value={form.email}
+              onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+              placeholder="jan@email.pl"
+            />
           </div>
 
           <div>
             <label style={S.label}>Rodzaj nieruchomości</label>
-            <select className="ce-select" style={S.input} value={form.propertyType} onChange={(e) => setForm((p) => ({ ...p, propertyType: e.target.value as any }))}>
+            <select
+              className="ce-select"
+              style={S.input}
+              value={form.propertyType}
+              onChange={(e) => setForm((p) => ({ ...p, propertyType: e.target.value as FormState["propertyType"] }))}
+            >
               <option value="mieszkanie">Mieszkanie</option>
               <option value="dom">Dom</option>
               <option value="dzialka">Działka</option>
@@ -224,40 +257,78 @@ export default function ProspectsIntakeFormPage() {
 
           <div>
             <label style={S.label}>Miasto *</label>
-            <input style={S.input} value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} placeholder="np. Warszawa" />
+            <input
+              style={S.input}
+              value={form.city}
+              onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+              placeholder="np. Warszawa"
+            />
           </div>
 
           <div>
             <label style={S.label}>Dzielnica</label>
-            <input style={S.input} value={form.district} onChange={(e) => setForm((p) => ({ ...p, district: e.target.value }))} placeholder="np. Mokotów" />
+            <input
+              style={S.input}
+              value={form.district}
+              onChange={(e) => setForm((p) => ({ ...p, district: e.target.value }))}
+              placeholder="np. Mokotów"
+            />
           </div>
 
           <div className="md:col-span-2">
             <label style={S.label}>Ulica</label>
-            <input style={S.input} value={form.street} onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))} placeholder="np. Puławska" />
+            <input
+              style={S.input}
+              value={form.street}
+              onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))}
+              placeholder="np. Puławska"
+            />
           </div>
 
           <div>
             <label style={S.label}>Pokoje</label>
-            <input style={S.input} value={form.rooms} onChange={(e) => setForm((p) => ({ ...p, rooms: e.target.value }))} placeholder="np. 3" inputMode="numeric" />
+            <input
+              style={S.input}
+              value={form.rooms}
+              onChange={(e) => setForm((p) => ({ ...p, rooms: e.target.value }))}
+              placeholder="np. 3"
+              inputMode="numeric"
+            />
           </div>
 
           <div>
-            <label style={S.label}>Metraż (m˛)</label>
-            <input style={S.input} value={form.area} onChange={(e) => setForm((p) => ({ ...p, area: e.target.value }))} placeholder="np. 58" inputMode="decimal" />
+            <label style={S.label}>Metraż (m²)</label>
+            <input
+              style={S.input}
+              value={form.area}
+              onChange={(e) => setForm((p) => ({ ...p, area: e.target.value }))}
+              placeholder="np. 58"
+              inputMode="decimal"
+            />
           </div>
 
           <div>
             <label style={S.label}>Oczekiwana cena (zł)</label>
-            <input style={S.input} value={form.price} onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))} placeholder="np. 850000" inputMode="numeric" />
+            <input
+              style={S.input}
+              value={form.price}
+              onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
+              placeholder="np. 850000"
+              inputMode="numeric"
+            />
           </div>
 
           <div>
             <label style={S.label}>Kiedy sprzedaż?</label>
-            <select className="ce-select" style={S.input} value={form.timeframe} onChange={(e) => setForm((p) => ({ ...p, timeframe: e.target.value as any }))}>
+            <select
+              className="ce-select"
+              style={S.input}
+              value={form.timeframe}
+              onChange={(e) => setForm((p) => ({ ...p, timeframe: e.target.value as FormState["timeframe"] }))}
+            >
               <option value="od_razu">Od razu</option>
-              <option value="1_3_mies">1—3 miesić…ce</option>
-              <option value="3_6_mies">3—6 miesięcy</option>
+              <option value="1_3_mies">1–3 miesiące</option>
+              <option value="3_6_mies">3–6 miesięcy</option>
               <option value="6_plus">6+ miesięcy</option>
               <option value="nie_wiem">Nie wiem</option>
             </select>
@@ -269,30 +340,42 @@ export default function ProspectsIntakeFormPage() {
               style={{ ...S.input, minHeight: 110, resize: "vertical" as const }}
               value={form.notes}
               onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))}
-              placeholder="np. pić™tro, stan, czy jest winda, termin wyprowadzki, itp."
+              placeholder="np. piętro, stan, czy jest winda, termin wyprowadzki, itp."
             />
           </div>
         </div>
 
-        <div className="mt-5 rounded-2xl p-4" style={{ border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.03)" }}>
+        <div
+          className="mt-5 rounded-2xl p-4"
+          style={{ border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.03)" }}
+        >
           <label className="flex items-start gap-3" style={{ cursor: "pointer" }}>
-            <input type="checkbox" checked={form.consent} onChange={(e) => setForm((p) => ({ ...p, consent: e.target.checked }))} style={{ marginTop: 3 }} />
+            <input
+              type="checkbox"
+              checked={form.consent}
+              onChange={(e) => setForm((p) => ({ ...p, consent: e.target.checked }))}
+              style={{ marginTop: 3 }}
+            />
             <div style={{ minWidth: 0 }}>
               <div className="text-sm font-extrabold" style={{ color: "rgba(234,255,251,0.95)" }}>
-                Wyrażam zgodć™ na kontakt w sprawie sprzedaży nieruchomości *
+                Wyrażam zgodę na kontakt w sprawie sprzedaży nieruchomości *
               </div>
               <div className="mt-1 text-xs" style={{ color: "var(--text-muted)" }}>
-                Zgoda potrzebna, żebym mógł oddzwonić‡/odpisać‡.
+                Zgoda potrzebna, żebym mógł oddzwonić/odpisać.
               </div>
             </div>
           </label>
         </div>
 
-        {err ? <div className="mt-4 text-sm" style={{ color: "rgba(255,220,220,0.95)" }}>š  {err}</div> : null}
+        {err ? (
+          <div className="mt-4 text-sm" style={{ color: "rgba(255,220,220,0.95)" }}>
+            {err}
+          </div>
+        ) : null}
 
-        <div className="mt-6 flex flex-wrap gap-10">
+        <div className="mt-6 flex flex-wrap gap-3">
           <button style={S.btn(true)} onClick={submit} disabled={!canSend || sending}>
-            {sending ? "ł Wysyłam€¦" : "… Wyślij zgłoszenie"}
+            {sending ? "Wysyłam…" : "Wyślij zgłoszenie"}
           </button>
 
           <button
@@ -303,7 +386,7 @@ export default function ProspectsIntakeFormPage() {
             }}
             disabled={sending}
           >
-            Wyczyść‡
+            Wyczyść
           </button>
         </div>
       </div>
