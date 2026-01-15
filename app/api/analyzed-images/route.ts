@@ -1,95 +1,83 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+/**
+ * Bezpieczny helper – OpenAI inicjalizowany dopiero w runtime
+ * (ważne dla builda Vercel / Turbopack)
+ */
+function getOpenAI() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const OpenAI = require("openai").default;
+  return new OpenAI({ apiKey });
+}
 
 export async function POST(req: Request) {
-  
+  try {
     const client = getOpenAI();
     if (!client) {
       return NextResponse.json(
-        { error: "Missing OPENAI_API_KEY", details: "Ustaw OPENAI_API_KEY w Vercel -> Project Settings -> Environment Variables." },
-        { status: 500 }
-      );
-    }
-try {
-    const body = await req.json().catch(() => ({}));
-    const { images } = body as { images?: unknown };
-
-    if (!Array.isArray(images) || images.length === 0) {
-      return NextResponse.json(
-        { error: "Brak poprawnych linków do zdjć™ć‡" },
-        { status: 400 }
-      );
-    }
-
-    const cleanedImages = images
-      .filter((u): u is string => typeof u === "string")
-      .map((u) => u.trim())
-      .filter((u) => u.length > 0);
-
-    if (cleanedImages.length === 0) {
-      return NextResponse.json(
-        { error: "Brak poprawnych linków do zdjć™ć‡" },
-        { status: 400 }
-      );
-    }
-
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: "Brak OPENAI_API_KEY w env" },
+        {
+          error: "Missing OPENAI_API_KEY",
+          details: "Ustaw OPENAI_API_KEY w Vercel → Project Settings → Environment Variables.",
+        },
         { status: 500 }
       );
     }
 
-    const client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    const body = await req.json().catch(() => null);
+    if (!body?.imageBase64) {
+      return NextResponse.json(
+        { error: "Brak obrazu do analizy (imageBase64)" },
+        { status: 400 }
+      );
+    }
 
-    // … content z literalami: kluczowe, żeby TS nie robił "type: string"
-    const content = [
-      {
-        type: "text" as const,
-        text:
-          "Przeanalizuj stan techniczny nieruchomości na podstawie zdjć™ć‡. " +
-          "Opisz standard wykończenia, zużycie, ewentualne wady.",
-      },
-      ...cleanedImages.map((url) => ({
-        type: "image_url" as const,
-        image_url: { url },
-      })),
-    ];
+    const imageBase64: string = body.imageBase64;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
+    const response = await client.responses.create({
+      model: "gpt-4.1-mini",
+      input: [
         {
           role: "user",
-          content,
+          content: [
+            {
+              type: "input_text",
+              text: `
+Przeanalizuj obraz nieruchomości.
+Opisz:
+- typ nieruchomości
+- stan wizualny
+- potencjalne atuty sprzedażowe
+- co warto poprawić przed sprzedażą
+
+Odpowiadaj po polsku, konkretnie, w punktach.
+              `.trim(),
+            },
+            {
+              type: "input_image",
+              image_base64: imageBase64,
+            },
+          ],
         },
       ],
+      max_output_tokens: 400,
+      temperature: 0.2,
     });
 
-    const result = response.choices?.[0]?.message?.content;
+    const text =
+      response.output_text?.trim() ||
+      "Nie udało się wygenerować analizy obrazu.";
 
-    if (!result) {
-      return NextResponse.json(
-        { error: "AI nie zwróciło analizy" },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ result });
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error
-        ? err.message
-        : typeof err === "string"
-          ? err
-          : "Nieznany błąd";
-
+    return NextResponse.json({ ok: true, analysis: text });
+  } catch (e: any) {
+    console.error("ANALYZED IMAGES ERROR:", e);
     return NextResponse.json(
-      { error: "Błąd serwera API", details: message },
+      { error: "Błąd analizy obrazu", details: e?.message || String(e) },
       { status: 500 }
     );
   }
